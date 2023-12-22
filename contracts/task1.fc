@@ -6,17 +6,18 @@ const CLAIM = 0xbb4be234;
 () recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
 }
 
-() recv_external(slice in_msg) impure {
-    int op = in_msg~load_uint(32);
+() recv_external(int my_balance, int msg_value, cell in_msg_full, slice in_msg) impure {
+    ;; int op = in_msg~load_uint(32);
 
     var ds = get_data().begin_parse(); ;; get data from storage and convert it into a slice to be able to read values
-    var (public_key, execution_time, receiver, seqno) = (ds~load_uint(256), ds~load_uint(32),ds.load_msg_addr(), ds~load_uint(32)); ;; read values from storage
+    var (public_key, execution_time, receiver, seqno) = (ds~load_uint(256), ds~load_uint(32),ds~load_msg_addr(), ds~load_uint(32)); ;; read values from storage
     ds.end_parse(); ;; make sure we do not have anything in ds variable
 
+    var (op, signature, locked_for, new_seqno) = (in_msg~load_uint(32), in_msg~load_bits(512), in_msg~load_uint(32), in_msg~load_uint(32));
     if(op == UPDATE) {
-        var signature = in_msg~load_bits(512); ;; get signature from the message body
-        var cs = in_msg;
-        var (locked_for, new_seqno) = (cs~load_uint(32), cs~load_uint(32));  ;; get rest values from the message body
+        ;; var signature = in_msg~load_bits(512); ;; get signature from the message body
+        ;; var cs = in_msg;
+        ;; var (locked_for, new_seqno) = (cs~load_uint(32), cs~load_uint(32));  ;; get rest values from the message body
        
         throw_if(119, new_seqno != seqno + 1);
         throw_unless(120, check_signature(slice_hash(in_msg), signature, public_key));
@@ -27,10 +28,20 @@ const CLAIM = 0xbb4be234;
             .store_uint(execution_time + locked_for, 32)
             .store_uint(seqno + 1, 32)
            .end_cell());
+        return ();  
     }
 
     if(op == CLAIM) {
         throw_if(124, execution_time < now());
+        cell msg = begin_cell()
+            .store_uint(0x18, 6) ;; flags
+            .store_slice(receiver) ;; destination address
+            .store_coins(0) ;; we don't care about this value right now
+            .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1) ;; default message headers (see sending messages page)
+            .store_uint(0, 32) ;; zero opcode - means simple transfer message with comment
+        .end_cell();
+        send_raw_message(msg, 128); ;; mode = 128 is use
+        return ();  
     }
 
     throw(0xffff);
