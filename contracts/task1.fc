@@ -4,16 +4,6 @@ const UPDATE = 0x9df10277;
 const CLAIM = 0xbb4be234;
 
 () recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
-throw_if(35,in_msg_body.slice_bits() < 32);
-
-    int n = in_msg_body~load_uint(32);
-
-    slice ds = get_data().begin_parse();
-    int total = ds~load_uint(64);
-
-    total += n;
-
-    set_data(begin_cell().store_uint(total, 64).end_cell());
 }
 
 () recv_external(slice in_msg) impure {
@@ -28,7 +18,7 @@ throw_if(35,in_msg_body.slice_bits() < 32);
         ds.end_parse(); ;; make sure we do not have anything in ds variable
 
         throw_if(119, new_seqno != seqno + 1);
-        throw_if(120, check_signature(slice_hash(in_msg), signature, public_key));
+        throw_unless(120, check_signature(slice_hash(in_msg), signature, public_key));
         throw_if(122, execution_time < now());
         throw_if(123, now() + locked_for < execution_time);
         accept_message();
@@ -39,7 +29,7 @@ throw_if(35,in_msg_body.slice_bits() < 32);
     }
 
     if(op == CLAIM) {
-
+        throw_if(124, execution_time < now());
     }
 
     throw(0xffff);
