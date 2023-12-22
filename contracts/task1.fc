@@ -13,19 +13,21 @@ const CLAIM = 0xbb4be234;
     var (public_key, execution_time, receiver, seqno) = (ds~load_uint(256), ds~load_uint(32),ds~load_msg_addr(), ds~load_uint(32)); ;; read values from storage
     ds.end_parse(); ;; make sure we do not have anything in ds variable
 
-    var (op, signature, locked_for, new_seqno) = (in_msg~load_uint(32), in_msg~load_bits(512), in_msg~load_uint(32), in_msg~load_uint(32));
+    var (op, signature) = (in_msg~load_uint(32), in_msg~load_bits(512));
     if(op == UPDATE) {
         ;; var signature = in_msg~load_bits(512); ;; get signature from the message body
-        ;; var cs = in_msg;
-        ;; var (locked_for, new_seqno) = (cs~load_uint(32), cs~load_uint(32));  ;; get rest values from the message body
+        var cs = in_msg;
+        var (locked_for, new_seqno) = (cs~load_uint(32), cs~load_uint(32));  ;; get rest values from the message body
        
-        throw_if(119, new_seqno != seqno + 1);
-        throw_unless(120, check_signature(slice_hash(in_msg), signature, public_key));
-        throw_if(122, execution_time < now());
-        throw_if(123, now() + locked_for < execution_time);
-        accept_message();
+        ;; throw_if(119, new_seqno != seqno + 1);
+        ;; throw_unless(120, check_signature(slice_hash(in_msg), signature, public_key));
+        ;; throw_if(122, execution_time < now());
+        ;; throw_if(123, now() + locked_for < execution_time);
+        ;; accept_message();
         set_data(begin_cell()
+            .store_uint(public_key, 256)
             .store_uint(execution_time + locked_for, 32)
+            .store_slice(receiver) ;; destination address
             .store_uint(seqno + 1, 32)
            .end_cell());
         return ();  
