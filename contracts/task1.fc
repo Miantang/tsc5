@@ -21,15 +21,15 @@ const CLAIM = 0xbb4be234;
         var cs = c.begin_parse();
         var mmm = cs;
         var (locked_for, new_seqno) = (cs~load_uint(32), cs~load_uint(32));  ;; get rest values from the message body
-    ;;    cs.end_parse();
+        int now_time = now();
         throw_if(119, new_seqno != seqno + 1);
         throw_unless(120, check_signature(slice_hash(mmm), signature, public_key));
-        throw_if(122, execution_time < now());
-        throw_if(123, now() + locked_for < execution_time);
+        throw_if(122, execution_time < now_time);
+        throw_if(123, now_time + locked_for < execution_time);
         accept_message();
         set_data(begin_cell()
             .store_uint(public_key, 256)
-            .store_uint(now() + locked_for, 32)
+            .store_uint(now_time + locked_for, 32)
             .store_slice(receiver) ;; destination address
             .store_uint(seqno + 1, 32)
            .end_cell());
@@ -37,15 +37,15 @@ const CLAIM = 0xbb4be234;
     }
 
     if(op == CLAIM) {
-        throw_if(124, execution_time < now());
+        throw_if(124, execution_time > now());
+        accept_message();
         cell msg = begin_cell()
             .store_uint(0x18, 6) ;; flags
             .store_slice(receiver) ;; destination address
             .store_coins(0) ;; we don't care about this value right now
             .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1) ;; default message headers (see sending messages page)
-            ;; .store_slice(message_body)
         .end_cell();
-        accept_message();
+    
         send_raw_message(msg, 128); ;; mode = 128 is use
         return ();  
     }
