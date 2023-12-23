@@ -17,8 +17,8 @@ const CLAIM = 0xbb4be234;
     if(op == UPDATE) {
         var (query_id, signature) = (in_msg~load_uint(64), in_msg~load_bits(512)); ;; get signature from the message body
         var left_in_msg = in_msg;
-        
-        var cs = left_in_msg.load_ref().begin_parse();
+        var c = left_in_msg~load_ref();
+        var cs = c.begin_parse();
         var (locked_for, new_seqno) = (cs~load_uint(32), cs~load_uint(32));  ;; get rest values from the message body
     ;;    cs.end_parse();
         throw_if(119, new_seqno != seqno + 1);
