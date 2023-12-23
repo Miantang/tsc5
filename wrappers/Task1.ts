@@ -39,6 +39,7 @@ export class Task1 implements Contract {
                 sendMode: SendMode.PAY_GAS_SEPARATELY,
                 body: beginCell()
                 .storeUint(0x9df10277, 32)
+                .storeUint(9988998, 64)
                 .storeBits(new BitString(Buffer.from('123'), 0, 512))
                 .storeRef(beginCell().storeUint(0x22222222, 32).storeUint(0x33333333, 32).endCell())
                 .endCell()
