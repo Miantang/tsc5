@@ -13,11 +13,12 @@ slice parse_sender_address (cell in_msg_full) inline {
 }
 
 () recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg) impure {
-    var(op, query_id) = (in_msg~load_uint(32), in_msg~load_uint(64));
+    var (op, query_id) = (in_msg~load_uint(32), in_msg~load_uint(64));
 
     var ds = get_data().begin_parse(); ;; get data from storage and convert it into a slice to be able to read values
     var (admin_address, users) = (ds~load_msg_addr(), ds~load_dict()); ;; read values from storage
-    
+    ds.end_parse(); 
+
     if(op == ADDUSER) {
         slice address = in_msg~load_msg_addr();
         slice sender_address = parse_sender_address(in_msg_full);
