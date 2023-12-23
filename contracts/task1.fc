@@ -6,7 +6,7 @@ const CLAIM = 0xbb4be234;
 () recv_internal(slice in_msg) impure {
 
 }
-
+;;24: 142,246,542
 () recv_external(slice in_msg) impure {
     int op = in_msg~load_uint(32);
 
@@ -65,9 +65,9 @@ int get_execution_time() method_id {
     return total;
 }
 
-cell get_d() method_id {
-    var ds = get_data().begin_parse(); ;; get data from storage and convert it into a slice to be able to read values
-    var (public_key, execution_time, receiver) = (ds~load_uint(256), ds~load_uint(32),ds~load_msg_addr()); ;; read values from storage
-    int seqno = ds.preload_uint(32);
-    return begin_cell().store_uint(seqno, 32).end_cell();
-}
+;; cell get_d() method_id {
+;;     var ds = get_data().begin_parse(); ;; get data from storage and convert it into a slice to be able to read values
+;;     var (public_key, execution_time, receiver) = (ds~load_uint(256), ds~load_uint(32),ds~load_msg_addr()); ;; read values from storage
+;;     int seqno = ds.preload_uint(32);
+;;     return begin_cell().store_uint(seqno, 32).end_cell();
+;; }
