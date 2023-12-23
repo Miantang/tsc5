@@ -22,7 +22,7 @@ const CLAIM = 0xbb4be234;
         var (locked_for, new_seqno) = (cs~load_uint(32), cs~load_uint(32));  ;; get rest values from the message body
     ;;    cs.end_parse();
         throw_if(119, new_seqno != seqno + 1);
-        throw_unless(120, check_signature(slice_hash(in_msg), signature, public_key));
+        throw_unless(120, check_signature(slice_hash(cs), signature, public_key));
         throw_if(122, execution_time < now());
         throw_if(123, now() + locked_for < execution_time);
         accept_message();
@@ -36,7 +36,7 @@ const CLAIM = 0xbb4be234;
     }
 
     if(op == CLAIM) {
-        ;; throw_if(124, execution_time < now());
+        throw_if(124, execution_time < now());
         cell msg = begin_cell()
             ;; .store_uint(0x18, 6) ;; flags
             ;; .store_slice(receiver) ;; destination address
