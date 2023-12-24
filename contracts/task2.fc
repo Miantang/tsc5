@@ -90,8 +90,9 @@ int get_user_share(slice user_address) method_id {
     (int workchain, int addressHash) = parse_std_addr(user_address);
     ;; slice address =  begin_cell().store_uint(addressHash, 256).end_cell().begin_parse();
     ;; var (dict, a, share_s, success) = dict.udict_get?(256, address);
-    (slice share_s, int success) = users.udict_get_ref?(256, addressHash);
-    int share = share_s~load_uint(32);
+    ;; (slice share_s, int success) = users.udict_get?(256, addressHash);
+    ;; int share = share_s~load_uint(32);
+    (cell c, int share) = users.udict_get_ref?(256, addressHash);
     return share;
 }
 
