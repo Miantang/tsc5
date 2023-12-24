@@ -44,15 +44,11 @@ slice parse_sender_address (cell in_msg_full) inline {
         slice sender_address = parse_sender_address(in_msg_full);
         throw_if(120, ~ equal_slices(sender_address, admin_address));
 
-         slice addressInt = in_msg~load_msg_addr();
+        slice addressInt = in_msg~load_msg_addr();
         (int workchain, int addressHash) = parse_std_addr(addressInt);
-        ;; slice address =  begin_cell().store_uint(addressHash, 256).end_cell().begin_parse();
-        ;; (int epyt, cell users) = (ds~load_uint(1), ds~load_ref());
-        ;; throw_unless(122, epyt);
          var users = ds~load_dict();
-        if(dict_empty?(users)) {
-            users = new_dict();
-        }
+         
+        throw_if(121, users.dict_empty?());
         int success? = users~udict_delete?(256, addressHash);
         throw_unless(121, success?);
          set_data(begin_cell()
@@ -63,8 +59,8 @@ slice parse_sender_address (cell in_msg_full) inline {
     }
 
     if(op == SPLIT) {
-        slice sender_address = parse_sender_address(in_msg_full);
-        throw_if(120, ~ equal_slices(sender_address, admin_address));
+        ;; slice sender_address = parse_sender_address(in_msg_full);
+        ;; throw_if(120, ~ equal_slices(sender_address, admin_address));
         var users = ds~load_dict();
         throw_if(122, users.dict_empty?());
         ;; do {
@@ -80,8 +76,8 @@ slice parse_sender_address (cell in_msg_full) inline {
     }
 
     if(op == TRANSFER) {
-        slice sender_address = parse_sender_address(in_msg_full);
-        throw_if(120, ~ equal_slices(sender_address, admin_address));
+        ;; slice sender_address = parse_sender_address(in_msg_full);
+        ;; throw_if(120, ~ equal_slices(sender_address, admin_address));
         var users = ds~load_dict();
         throw_if(122, users.dict_empty?());
         int coins = in_msg~load_coins();
@@ -97,6 +93,9 @@ cell get_users() method_id {
     slice addr = ds~load_msg_addr();
     ;; int epyt = ds~load_uint(1);
     var users = ds~load_dict();
+    if(users.dict_empty?()) {
+        return new_dict();
+    }
     return users;
     ;; cell dic  = new_dict();
     ;; dic~udict_set_builder(8,8,begin_cell().store_uint(8, 88));
@@ -121,3 +120,8 @@ int get_user_share(slice user_address) method_id {
     return share;
 }
 
+slice get_admin() method_id {
+     var ds = get_data().begin_parse(); ;; get data from storage and convert it into a slice to be able to read values
+    var admin_address = ds~load_msg_addr();
+    return admin_address;
+}
