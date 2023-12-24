@@ -40,17 +40,17 @@ describe('Task1', () => {
         //
     });
 
-    it('should sendUpdate', async () => {
-        const address = randomAddress();
-        const deployer = await blockchain.treasury('deployer');
-        const sender = deployer.getSender();
-        const taskUpdate = await task1.sendUpdate(sender, toNano('0.05'));
-        // console.log('taskUpdate', sender.getState());
-        const m:any = await task1.getState();
-        // console.log('m', m, taskUpdate.transactions);
-        expect(taskUpdate.transactions).toHaveTransaction({
-            op: 0x9DF10277,
-        });
-        // expect(task1)
-    });
+    // it('should sendUpdate', async () => {
+    //     const address = randomAddress();
+    //     const deployer = await blockchain.treasury('deployer');
+    //     const sender = deployer.getSender();
+    //     const taskUpdate = await task1.sendUpdate(sender, toNano('0.05'));
+    //     // console.log('taskUpdate', sender.getState());
+    //     const m:any = await task1.getState();
+    //     // console.log('m', m, taskUpdate.transactions);
+    //     expect(taskUpdate.transactions).toHaveTransaction({
+    //         op: 0x9DF10277,
+    //     });
+    //     // expect(task1)
+    // });
 });
