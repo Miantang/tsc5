@@ -60,14 +60,14 @@ slice parse_sender_address (cell in_msg_full) inline {
     }
 
     if(op == SPLIT) {
-        cell users = ds~load_dict();
-        throw_if(122, dict_empty?(users));
+        var users = ds~load_dict();
+        throw_if(122, users.dict_empty?());
         return ();
     }
 
     if(op == TRANSFER) {
-        cell users = ds~load_dict();
-        throw_if(122, dict_empty?(users));
+        var users = ds~load_dict();
+        throw_if(122, users.dict_empty?());
         int coins = in_msg~load_coins();
         return ();
     }
