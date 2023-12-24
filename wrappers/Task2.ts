@@ -1,9 +1,14 @@
-import { Address, beginCell, Cell, Contract, contractAddress, ContractProvider, Sender, SendMode } from 'ton-core';
+import { Address, beginCell,Dictionary,  Cell, Contract, contractAddress, ContractProvider, Sender, SendMode } from 'ton-core';
+import { randomAddress } from '@ton-community/test-utils';
 
 export type Task2Config = {};
 
 export function task2ConfigToCell(config: Task2Config): Cell {
-    return beginCell().endCell();
+    const address = randomAddress();
+    return beginCell()//.endCell();
+    .storeAddress(address)
+    // .storeDict()
+    .endCell();
 }
 
 export class Task2 implements Contract {

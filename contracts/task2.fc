@@ -17,7 +17,6 @@ slice parse_sender_address (cell in_msg_full) inline {
 
     var ds = get_data().begin_parse(); ;; get data from storage and convert it into a slice to be able to read values
     var (admin_address, users) = (ds~load_msg_addr(), ds~load_dict()); ;; read values from storage
-    ds.end_parse(); 
 
     if(op == ADDUSER) {
         slice address = in_msg~load_msg_addr();
@@ -48,6 +47,12 @@ slice parse_sender_address (cell in_msg_full) inline {
         throw_if(122, users.dict_empty?());
         return ();
     }
+
+    if(op == TRANSFER) {
+        throw_if(122, users.dict_empty?());
+        return ();
+    }
+    
 
     throw(0xffff);
 }
