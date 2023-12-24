@@ -19,10 +19,12 @@ slice parse_sender_address (cell in_msg_full) inline {
     var (admin_address, users) = (ds~load_msg_addr(), ds~load_dict()); ;; read values from storage
 
     if(op == ADDUSER) {
-        slice address = in_msg~load_msg_addr();
+        slice addressInt = in_msg~load_msg_addr();
+        ;; int share = in_msg~load_uint(32);
+        (int workchain, int address) = parse_std_addr(addressInt);
         slice sender_address = parse_sender_address(in_msg_full);
         throw_unless(120, equal_slices(sender_address, admin_address));
-        users~dict_set(256, address, in_msg);
+        users~udict_set(256, address, in_msg); ;;udict_set_builder
         set_data(begin_cell()
             .store_slice(admin_address) ;; destination address
             .store_dict(users)
@@ -31,10 +33,11 @@ slice parse_sender_address (cell in_msg_full) inline {
     }
 
     if(op == REMOVEUSER) {
-        var address = in_msg~load_msg_addr();
+        slice addressInt = in_msg~load_msg_addr();
+        (int workchain, int address) = parse_std_addr(addressInt);
         slice sender_address = parse_sender_address(in_msg_full);
         throw_unless(120, equal_slices(sender_address, admin_address));
-        int success? = users~pfxdict_delete?(256, address);
+        int success? = users~udict_delete?(256, address);
         throw_unless(121, success?);
          set_data(begin_cell()
             .store_slice(admin_address) ;; destination address
@@ -68,7 +71,9 @@ int get_user_share(slice user_address) method_id {
     var ds = get_data().begin_parse(); ;; get data from storage and convert it into a slice to be able to read values
     ds~load_msg_addr();
     cell dict = ds~load_dict();
-    var (dict, a, share_s, success) = dict.pfxdict_get?(256, user_address);
+    (int workchain, int address) = parse_std_addr(user_address);
+    ;; var (dict, a, share_s, success) = dict.udict_get?(256, address);
+    var (share_s, success) = dict.udict_get?(256, address);
     int share = share_s~load_uint(32);
     return share;
 }
