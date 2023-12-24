@@ -24,10 +24,9 @@ slice parse_sender_address (cell in_msg_full) inline {
         (int workchain, int addressHash) = parse_std_addr(addressInt);
         ;; slice address =  begin_cell().store_uint(addressHash, 256).end_cell().begin_parse();
         slice sender_address = parse_sender_address(in_msg_full);
-        throw_unless(120, equal_slice_bits(sender_address, admin_address));
-        ;; cell users = ds~load_dict();
-        (int epyt, cell users) = (ds~load_uint(1), ds~load_ref());
-        throw_unless(122, epyt);
+        throw_unless(120, equal_slices(sender_address, admin_address));
+        cell users = ds~load_dict();
+        ;; (int epyt, cell users) = (ds~load_uint(1), ds~load_ref());
         users~udict_set_builder(256, addressHash, begin_cell().store_uint(share, 32)); ;;udict_set_builder
         set_data(begin_cell()
             .store_slice(admin_address) ;; destination address
@@ -41,9 +40,10 @@ slice parse_sender_address (cell in_msg_full) inline {
         (int workchain, int addressHash) = parse_std_addr(addressInt);
         ;; slice address =  begin_cell().store_uint(addressHash, 256).end_cell().begin_parse();
         slice sender_address = parse_sender_address(in_msg_full);
-        throw_unless(120, equal_slice_bits(sender_address, admin_address));
-        (int epyt, cell users) = (ds~load_uint(1), ds~load_ref());
-        throw_unless(122, epyt);
+        throw_unless(120, equal_slices(sender_address, admin_address));
+        ;; (int epyt, cell users) = (ds~load_uint(1), ds~load_ref());
+        ;; throw_unless(122, epyt);
+        cell users = ds~load_dict();
         int success? = users~udict_delete?(256, addressHash);
         throw_unless(121, success?);
          set_data(begin_cell()
@@ -54,20 +54,17 @@ slice parse_sender_address (cell in_msg_full) inline {
     }
 
     if(op == SPLIT) {
-        int epyt = ds~load_uint(1);
-        throw_unless(122, epyt);
+        cell users = ds~load_dict();
+        throw_if(122, dict_empty?(users));
         return ();
     }
 
     if(op == TRANSFER) {
-         int epyt = ds~load_uint(1);
-        throw_unless(122, epyt);
+        cell users = ds~load_dict();
+        throw_if(122, dict_empty?(users));
         int coins = in_msg~load_coins();
         return ();
     }
-
-    
-    
 
    return ();
 }
@@ -76,23 +73,25 @@ slice parse_sender_address (cell in_msg_full) inline {
 cell get_users() method_id {
     var ds = get_data().begin_parse(); ;; get data from storage and convert it into a slice to be able to read values
     slice addr = ds~load_msg_addr();
-    int epyt = ds~load_uint(1);
+    ;; int epyt = ds~load_uint(1);
+    return ds.preload_dict();
     ;; cell dic  = new_dict();
     ;; dic~udict_set_builder(8,8,begin_cell().store_uint(8, 88));
-    return ds.preload_ref();
+    ;; return dic;
 }
 
 int get_user_share(slice user_address) method_id {
     var ds = get_data().begin_parse(); ;; get data from storage and convert it into a slice to be able to read values
     slice addr = ds~load_msg_addr();
-    int epyt = ds~load_uint(1);
-    cell users = ds~load_ref();
+    ;; int epyt = ds~load_uint(1);
+    ;; cell users = ds~load_ref();
+    cell users = ds~load_dict();
     (int workchain, int addressHash) = parse_std_addr(user_address);
     ;; slice address =  begin_cell().store_uint(addressHash, 256).end_cell().begin_parse();
     ;; var (dict, a, share_s, success) = dict.udict_get?(256, address);
-    ;; (slice share_s, int success) = users.udict_get?(256, addressHash);
-    ;; int share = share_s~load_uint(32);
-    (cell c, int share) = users.udict_get_ref?(256, addressHash);
+    (slice share_s, int success) = users.udict_get?(256, addressHash);
+    int share = share_s~load_uint(32);
+    ;; (cell c, int share) = users.udict_get?(256, addressHash);
     return share;
 }
 

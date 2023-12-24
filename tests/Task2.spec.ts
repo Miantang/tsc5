@@ -43,7 +43,8 @@ describe('Task2', () => {
         const sender = deployer.getSender();
         const taskUpdate = await task2.sendDict(sender, toNano('0.01'));
         const m:any = await task2.getState();
-        console.log('m', m, taskUpdate.transactions);
+        // console.log('m', m, taskUpdate.transactions);
+        console.log('m', m, taskUpdate.transactions?.[0]?.outMessages?.keys(), taskUpdate.transactions?.[0]?.outMessages?.values());
         expect(taskUpdate.transactions).toHaveTransaction({
             op: 0x66666666,
         });
