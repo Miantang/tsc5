@@ -16,7 +16,7 @@ slice parse_sender_address (cell in_msg_full) inline {
     var (op, query_id) = (in_msg~load_uint(32), in_msg~load_uint(64));
 
     var ds = get_data().begin_parse(); ;; get data from storage and convert it into a slice to be able to read values
-    var (admin_address, users) = (ds~load_msg_addr(), ds~load_dict()); ;; read values from storage
+    slice admin_address = ds~load_msg_addr();
 
     if(op == ADDUSER) {
         slice addressInt = in_msg~load_msg_addr();
@@ -25,6 +25,7 @@ slice parse_sender_address (cell in_msg_full) inline {
         ;; slice address =  begin_cell().store_uint(addressHash, 256).end_cell().begin_parse();
         slice sender_address = parse_sender_address(in_msg_full);
         throw_unless(120, equal_slice_bits(sender_address, admin_address));
+        cell users = ds~load_dict();
         users~udict_set_builder(256, addressHash, begin_cell().store_uint(share, 32)); ;;udict_set_builder
         set_data(begin_cell()
             .store_slice(admin_address) ;; destination address
@@ -39,6 +40,7 @@ slice parse_sender_address (cell in_msg_full) inline {
         ;; slice address =  begin_cell().store_uint(addressHash, 256).end_cell().begin_parse();
         slice sender_address = parse_sender_address(in_msg_full);
         throw_unless(120, equal_slice_bits(sender_address, admin_address));
+        cell users = ds~load_dict();
         int success? = users~udict_delete?(256, addressHash);
         throw_unless(121, success?);
          set_data(begin_cell()
@@ -49,12 +51,15 @@ slice parse_sender_address (cell in_msg_full) inline {
     }
 
     if(op == SPLIT) {
-        throw_if(122, users.dict_empty?());
+        int epyt = ds~load_uint(1);
+        throw_unless(122, epyt);
         return ();
     }
 
     if(op == TRANSFER) {
-        throw_if(122, users.dict_empty?());
+         int epyt = ds~load_uint(1);
+        throw_unless(122, epyt);
+        int coins = in_msg~load_coins();
         return ();
     }
 

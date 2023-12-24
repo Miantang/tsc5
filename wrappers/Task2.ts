@@ -1,4 +1,4 @@
-import { Address, beginCell, Dictionary,  Cell, Contract, contractAddress, ContractProvider, Sender, SendMode } from 'ton-core';
+import { Address, beginCell, Dictionary, Cell, Contract, contractAddress, ContractProvider, Sender, SendMode } from 'ton-core';
 import { randomAddress } from '@ton-community/test-utils';
 
 export type Task2Config = {};
