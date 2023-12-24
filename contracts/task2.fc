@@ -20,12 +20,12 @@ slice parse_sender_address (cell in_msg_full) inline {
 
     if(op == ADDUSER) {
         slice addressInt = in_msg~load_msg_addr();
-        ;; int share = in_msg~load_uint(32);
+        int share = in_msg~load_uint(32);
         (int workchain, int addressHash) = parse_std_addr(addressInt);
         ;; slice address =  begin_cell().store_uint(addressHash, 256).end_cell().begin_parse();
         slice sender_address = parse_sender_address(in_msg_full);
         throw_unless(120, equal_slices(sender_address, admin_address));
-        users~udict_set(256, addressHash, in_msg); ;;udict_set_builder
+        users~udict_set_builder(256, addressHash, begin_cell().store_uint(share, 32)); ;;udict_set_builder
         set_data(begin_cell()
             .store_slice(admin_address) ;; destination address
             .store_dict(users)
