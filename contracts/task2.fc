@@ -13,23 +13,24 @@ slice parse_sender_address (cell in_msg_full) inline {
 }
 
 () recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg) impure {
-    (int op, int query_id) = (in_msg~load_uint(32), in_msg~load_uint(64));
+    var (op, query_id) = (in_msg~load_uint(32), in_msg~load_uint(64));
 
     var ds = get_data().begin_parse(); ;; get data from storage and convert it into a slice to be able to read values
     var admin_address = ds~load_msg_addr();
 
     if(op == ADDUSER) {
-        slice addressInt = in_msg~load_msg_addr();
-        int share = in_msg~load_uint(32);
-        (int workchain, int addressHash) = parse_std_addr(addressInt);
-        ;; slice address =  begin_cell().store_uint(addressHash, 256).end_cell().begin_parse();
         slice sender_address = parse_sender_address(in_msg_full);
         throw_if(120, ~ equal_slices(sender_address, admin_address));
+
         var users = ds~load_dict();
         if(dict_empty?(users)) {
             users = new_dict();
         }
         ;; (int epyt, cell users) = (ds~load_uint(1), ds~load_ref());
+        slice addressInt = in_msg~load_msg_addr();
+        ;; slice address =  begin_cell().store_uint(addressHash, 256).end_cell().begin_parse();
+        int share = in_msg~load_uint(32);
+        (int workchain, int addressHash) = parse_std_addr(addressInt);
         users~udict_set_builder(256, addressHash, begin_cell().store_uint(share, 32)); ;;udict_set_builder
 
         set_data(begin_cell()
@@ -40,11 +41,12 @@ slice parse_sender_address (cell in_msg_full) inline {
     }
 
     if(op == REMOVEUSER) {
-        slice addressInt = in_msg~load_msg_addr();
-        (int workchain, int addressHash) = parse_std_addr(addressInt);
-        ;; slice address =  begin_cell().store_uint(addressHash, 256).end_cell().begin_parse();
         slice sender_address = parse_sender_address(in_msg_full);
         throw_if(120, ~ equal_slices(sender_address, admin_address));
+
+         slice addressInt = in_msg~load_msg_addr();
+        (int workchain, int addressHash) = parse_std_addr(addressInt);
+        ;; slice address =  begin_cell().store_uint(addressHash, 256).end_cell().begin_parse();
         ;; (int epyt, cell users) = (ds~load_uint(1), ds~load_ref());
         ;; throw_unless(122, epyt);
          var users = ds~load_dict();
