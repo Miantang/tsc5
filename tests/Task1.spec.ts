@@ -47,7 +47,7 @@ describe('Task1', () => {
         const taskUpdate = await task1.sendUpdate(sender, toNano('0.05'));
         // console.log('taskUpdate', sender.getState());
         const m:any = await task1.getState();
-        console.log('m', m, taskUpdate.transactions);
+        // console.log('m', m, taskUpdate.transactions);
         expect(taskUpdate.transactions).toHaveTransaction({
             op: 0x9DF10277,
         });
