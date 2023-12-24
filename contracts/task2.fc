@@ -2,7 +2,7 @@
 
 const ADDUSER = 0x368ddef3;
 const REMOVEUSER = 0x278205c8;
-const SPLIT = 0x68530b3;
+const SPLIT = 0x068530b3;
 const TRANSFER = 0x7362d09c;
 
 slice parse_sender_address (cell in_msg_full) inline {
@@ -25,7 +25,10 @@ slice parse_sender_address (cell in_msg_full) inline {
         ;; slice address =  begin_cell().store_uint(addressHash, 256).end_cell().begin_parse();
         slice sender_address = parse_sender_address(in_msg_full);
         throw_if(120, ~ equal_slices(sender_address, admin_address));
-        cell users = ds~load_dict();
+        var users = ds~load_dict();
+        if(dict_empty?(users)) {
+            users = new_dict();
+        }
         ;; (int epyt, cell users) = (ds~load_uint(1), ds~load_ref());
         users~udict_set_builder(256, addressHash, begin_cell().store_uint(share, 32)); ;;udict_set_builder
         set_data(begin_cell()
@@ -43,7 +46,10 @@ slice parse_sender_address (cell in_msg_full) inline {
         throw_if(120, ~ equal_slices(sender_address, admin_address));
         ;; (int epyt, cell users) = (ds~load_uint(1), ds~load_ref());
         ;; throw_unless(122, epyt);
-        cell users = ds~load_dict();
+         var users = ds~load_dict();
+        if(dict_empty?(users)) {
+            users = new_dict();
+        }
         int success? = users~udict_delete?(256, addressHash);
         throw_unless(121, success?);
          set_data(begin_cell()
@@ -85,7 +91,10 @@ int get_user_share(slice user_address) method_id {
     slice addr = ds~load_msg_addr();
     ;; int epyt = ds~load_uint(1);
     ;; cell users = ds~load_ref();
-    cell users = ds~load_dict();
+    var users = ds~load_dict();
+    if(dict_empty?(users)) {
+        users = new_dict();
+    }
     (int workchain, int addressHash) = parse_std_addr(user_address);
     ;; slice address =  begin_cell().store_uint(addressHash, 256).end_cell().begin_parse();
     ;; var (dict, a, share_s, success) = dict.udict_get?(256, address);
