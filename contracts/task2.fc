@@ -25,7 +25,9 @@ slice parse_sender_address (cell in_msg_full) inline {
         ;; slice address =  begin_cell().store_uint(addressHash, 256).end_cell().begin_parse();
         slice sender_address = parse_sender_address(in_msg_full);
         throw_unless(120, equal_slice_bits(sender_address, admin_address));
-        cell users = ds~load_dict();
+        ;; cell users = ds~load_dict();
+        (int epyt, cell users) = (ds~load_uint(1), ds~load_ref());
+        throw_unless(122, epyt);
         users~udict_set_builder(256, addressHash, begin_cell().store_uint(share, 32)); ;;udict_set_builder
         set_data(begin_cell()
             .store_slice(admin_address) ;; destination address
@@ -40,7 +42,8 @@ slice parse_sender_address (cell in_msg_full) inline {
         ;; slice address =  begin_cell().store_uint(addressHash, 256).end_cell().begin_parse();
         slice sender_address = parse_sender_address(in_msg_full);
         throw_unless(120, equal_slice_bits(sender_address, admin_address));
-        cell users = ds~load_dict();
+        (int epyt, cell users) = (ds~load_uint(1), ds~load_ref());
+        throw_unless(122, epyt);
         int success? = users~udict_delete?(256, addressHash);
         throw_unless(121, success?);
          set_data(begin_cell()
