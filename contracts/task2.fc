@@ -63,6 +63,8 @@ slice parse_sender_address (cell in_msg_full) inline {
     }
 
     if(op == SPLIT) {
+        slice sender_address = parse_sender_address(in_msg_full);
+        throw_if(120, ~ equal_slices(sender_address, admin_address));
         var users = ds~load_dict();
         throw_if(122, users.dict_empty?());
         ;; do {
@@ -78,6 +80,8 @@ slice parse_sender_address (cell in_msg_full) inline {
     }
 
     if(op == TRANSFER) {
+        slice sender_address = parse_sender_address(in_msg_full);
+        throw_if(120, ~ equal_slices(sender_address, admin_address));
         var users = ds~load_dict();
         throw_if(122, users.dict_empty?());
         int coins = in_msg~load_coins();
