@@ -73,15 +73,17 @@ slice parse_sender_address (cell in_msg_full) inline {
 cell get_users() method_id {
     var ds = get_data().begin_parse(); ;; get data from storage and convert it into a slice to be able to read values
     slice addr = ds~load_msg_addr();
+    int epyt = ds~load_uint(1);
     ;; cell dic  = new_dict();
     ;; dic~udict_set_builder(8,8,begin_cell().store_uint(8, 88));
-    return ds.preload_dict();
+    return ds.preload_ref();
 }
 
 int get_user_share(slice user_address) method_id {
     var ds = get_data().begin_parse(); ;; get data from storage and convert it into a slice to be able to read values
-    ds~load_msg_addr();
-    cell dict = ds~load_dict();
+    slice addr = ds~load_msg_addr();
+    int epyt = ds~load_uint(1);
+    cell dict = ds~load_ref();
     (int workchain, int addressHash) = parse_std_addr(user_address);
     ;; slice address =  begin_cell().store_uint(addressHash, 256).end_cell().begin_parse();
     ;; var (dict, a, share_s, success) = dict.udict_get?(256, address);
