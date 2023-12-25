@@ -16,6 +16,16 @@ const maze1 = [
     'XXX...XX'
   ];
 
+const maze0 = [
+    'XXXXXXE.',
+    'XX.XXXX.',
+    'X.X.XXX.',
+    '.?XSXXX.',
+    '?.XXXXX.',
+    'XX..XXX.',
+    'XX..XX?X',
+    'XXX...XX'
+  ];
 const maze2 = [
     'SX.?X',
     '.XX.X',
@@ -59,7 +69,7 @@ describe('Task4Basic', () => {
         // blockchain and task4Basic are ready to use
     });
     it('should solve', async () => {
-        const res = await task4Basic.sendSolve(8n, 8n, maze1);
+        const res = await task4Basic.sendSolve(8n, 8n, maze0);
         console.log('res', res.result);
         // const res2 = await task4Basic.sendSolve(5n, 8n, maze2)
     });

@@ -7,7 +7,6 @@ export function task4BasicConfigToCell(config: Task4BasicConfig): Cell {
 }
 
 function parseTupleArray(tr: TupleReader | null, n: bigint, m: bigint) {
-    console.log('tr', tr);
     if(!tr) {
         return null;
     }
