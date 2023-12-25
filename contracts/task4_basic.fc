@@ -78,7 +78,7 @@ tuple attach(tuple originMaze, tuple queue) inline {
         int xy = queue~tpop();
         (int x, int y) = point(xy);
         tuple line = originMaze.g(x).tset(y, 33);
-        originMaze.tset(x, line);
+        originMaze~tset(x, line);
     }
     return originMaze;
 }
@@ -100,26 +100,26 @@ tuple attach(tuple originMaze, tuple queue) inline {
     tuple dx = to_tuple([1, 0, -1, 0, 1, -1, -1, 1]);
     tuple dy = to_tuple([0, 1, 0, -1, -1, 1, -1, 1]);
     int findN = 0; 
-    int findM = 0;
     int S = null();
     int E = null();
 
-    do {
-        do {
-            if(maze.g(findN).g(findM) == 83) {
+    while(findN < n) {
+        tuple line = maze.g(findN);
+        int findM = 0;
+        while(findM < m) {
+             if(line.g(findM) == 83) {
                 S = one(findN, findM);
             }
-            if(maze.g(findN).g(findM) == 69) {
+            if(line.g(findM) == 69) {
                 E = one(findN, findM);
             }
-
             findM += 1;
-        } until (findM == m);
+        }
         findN += 1;
-    } until (findN == n);
+    }
 
     queue~tpush(S);
-    visited~udict_set_builder(8, S, begin_cell().store_uint(1, 1));
+    visited~udict_set_builder(16, S, begin_cell().store_uint(1, 1));
 
     int len = queue.tlen();
 
@@ -130,15 +130,15 @@ tuple attach(tuple originMaze, tuple queue) inline {
             (int nx, int ny) = point_move(fst, dx.g(dIndex), dy.g(dIndex)); ;; 新坐标
             if ((0 <= nx) & (nx < n) & ( 0 <= ny) & (ny < m)) { ;; 迷宫内的坐标
                 int p = one(nx, ny);
-                var (_, success) = visited.udict_get?(8, p);
+                var (_, success) = visited.udict_get?(16, p);
                 if(~ success) {
                     int character = maze.g(nx).g(ny);
                     if(character == 69) { ;; E
-                        return (-1, 0, queue.tlen() - 1, maze);
+                        return (-1, 0, queue.tlen() - 1, attach(maze,queue));
                     }
                     if(character == 46) { ;; .
                         queue~tpush(p);
-                        visited~udict_set_builder(8, p, begin_cell().store_uint(1, 1));
+                        visited~udict_set_builder(16, p, begin_cell().store_uint(1, 1));
                     }
 
                     if(character == 63) { ;;?
