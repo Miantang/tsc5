@@ -12,6 +12,24 @@ slice parse_sender_address (cell in_msg_full) inline {
     return sender_address;
 }
 
+() messages::send_empty(int amount, slice to, int mode) impure inline_ref {
+    cell msg = begin_cell()
+        .store_uint(0x18, 6)
+        .store_slice(to)
+        .store_coins(amount)
+        .store_uint(0, 107)
+    .end_cell();
+    send_raw_message(msg, mode);
+}
+
+(int) utils::to_ton(int amount) inline {
+    return amount * 1000000000;
+}
+
+(int) utils::from_ton(int amount) inline {
+    return amount / 1000000000;
+}
+
 () recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg) impure {
     var (op, query_id) = (in_msg~load_uint(32), in_msg~load_uint(64));
 
@@ -63,15 +81,18 @@ slice parse_sender_address (cell in_msg_full) inline {
         ;; throw_if(120, ~ equal_slices(sender_address, admin_address));
         var users = ds~load_dict();
         throw_if(122, users.dict_empty?());
-        ;; do {
-        ;;     cell msg = begin_cell()
-        ;;         .store_uint(0x18, 6)
-        ;;         .store_slice(to)
-        ;;         .store_coins(amount)
-        ;;         .store_uint(0, 107)
-        ;;     .end_cell();
-        ;;     send_raw_message(msg, 1);
-        ;; } until ()
+        (int key, slice val, int flag) = users.udict_get_min?(256);
+        while (flag) {
+            ;; do something with pair key->val
+            (key, val, flag) = users.udict_get_next?(256, key);
+             if (flag) {
+                ;; int valid_until = cs~load_uint(64);
+                ;; if (valid_until < now()) {
+                ;;     dic~udict_delete?(256, key);
+                ;; }
+            }
+        }
+
         return ();
     }
 
@@ -80,7 +101,8 @@ slice parse_sender_address (cell in_msg_full) inline {
         ;; throw_if(120, ~ equal_slices(sender_address, admin_address));
         var users = ds~load_dict();
         throw_if(122, users.dict_empty?());
-        int coins = in_msg~load_coins();
+        int amount = in_msg~load_coins();
+
         return ();
     }
 

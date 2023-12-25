@@ -72,13 +72,13 @@ describe('Task2', () => {
         const sender = deployer.getSender();
         const addr = randomAddress();
         const addr2 = randomAddress();
-        // const taskUpdate = await task2.sendAddUser(sender, toNano('0.01'), addr, 100);
-        // await task2.sendAddUser(sender, toNano('0.01'), addr, 101);
+        const taskUpdate = await task2.sendAddUser(sender, toNano('0.01'), addr, 100);
+        await task2.sendAddUser(sender, toNano('0.01'), addr, 101);
         await task2.sendAddUser(sender, toNano('0.01'), addr2, 102);
         // console.log('first sendDelUser', await task2.getUsers());
         const dd = await task2.sendDelUser(sender, toNano('0.01'), addr2);
         const m:any = await task2.getUsers();
-        const share:number|null = await task2.getUserShare(addr2);
+        const share:number|null = await task2.getUserShare(addr);
         // console.log('sendDelUser', dd.transactions, m, 'share',share);
         // expect(taskUpdate.transactions).toHaveTransaction({
         //     op: 0x368ddef3,

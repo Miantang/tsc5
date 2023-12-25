@@ -4,6 +4,29 @@ import { Task4Basic } from '../wrappers/Task4Basic';
 import '@ton-community/test-utils';
 import { compile } from '@ton-community/blueprint';
 
+// const pa = (maze) => maze.split('\n').map((line) => line.replace(/[ |\|]/g, ''));
+const maze1 = [
+    'XXXXXXE.',
+    'XX.XXXX.',
+    'X.X.XXXX',
+    '.?XSXXX.',
+    '?.XXXXX.',
+    'XX..XXX.',
+    'XX..XX?X',
+    'XXX...XX'
+  ];
+
+const maze2 = [
+    'SX.?X',
+    '.XX.X',
+    'X.?..',
+    '.??..',
+    'X?...',
+    '..X.X',
+    '..?..',
+    'X...E'
+  ]
+
 describe('Task4Basic', () => {
     let code: Cell;
 
@@ -34,5 +57,10 @@ describe('Task4Basic', () => {
     it('should deploy', async () => {
         // the check is done inside beforeEach
         // blockchain and task4Basic are ready to use
+    });
+    it('should solve', async () => {
+        const res = await task4Basic.sendSolve(8n, 8n, maze1);
+        console.log('res', res.result);
+        // const res2 = await task4Basic.sendSolve(5n, 8n, maze2)
     });
 });
