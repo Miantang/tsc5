@@ -219,7 +219,7 @@ tuple attachIndex(tuple originMaze, tuple path, cell visited, int backStep) inli
             if(c == 69) { ;; E
                 (int stone, int prob, int step) = split(visited.get?(72, cur));
                 path~tpush(cur);
-                return (-1, prob -1, step, attachIndex(maze, path, visited, step));
+                return (-1, prob - 1, step, attachIndex(maze, path, visited, step));
             }
             int dIndex = 0;
 
