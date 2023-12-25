@@ -37,6 +37,17 @@ const maze2 = [
     'X...E'
   ]
 
+  const maze4 = [
+    'SX.?XXXX',
+    '.XX.XXXX',
+    'X.?..XXX',
+    '.??..XXX',
+    'X?...XXX',
+    '..X.XXXX',
+    '..?..XXX',
+    'X...EXXX'
+  ]
+
 describe('Task4Basic', () => {
     let code: Cell;
 
