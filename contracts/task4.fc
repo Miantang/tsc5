@@ -99,7 +99,7 @@ int get?(cell dict, int key_len, int index) inline {
     return step;
 }
 
-tuple attach(tuple originMaze, cell come_from, int endxy) inline {
+tuple attach(tuple originMaze, cell come_from, int startxy, int endxy) inline {
     int pointer = endxy;
     ;; tuple t = empty_tuple();
     int n = 0;
