@@ -99,7 +99,7 @@ int get?(cell dict, int key_len, int index) inline {
     return step;
 }
 
-tuple attach(tuple originMaze, cell come_from, int endxy) inline {
+tuple attach(tuple originMaze, cell come_from, int startxy, int endxy) inline {
     int pointer = endxy;
     ;; tuple t = empty_tuple();
     int n = 0;
@@ -107,7 +107,7 @@ tuple attach(tuple originMaze, cell come_from, int endxy) inline {
         (slice xy_slice, int success) = come_from.udict_get?(16, pointer);
         int xy = xy_slice~load_uint(16);
         (int x, int y) = point(xy);
-        if(xy != 3636) {
+        if((xy != 3636) & (xy != startxy)) {
             originMaze~tset(x, originMaze.g(x).tset(y, 33));
         }
         pointer = xy;
@@ -360,7 +360,7 @@ int less(int xy1, int xy2, cell visited) inline {
                 (int stone, int prob, int step) = split(visited.get?(16, cur));
                 path~tpush(cur);
                 ;; return (-1, prob, step, attachIndex(maze, path, visited, step, prob, stone));
-                return (-1, prob, step, attach(maze, come_from, E));
+                return (-1, prob, step, attach(maze, come_from, S, E));
             }
 
             int dIndex = 0;
