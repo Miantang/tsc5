@@ -56,7 +56,7 @@ export class Task4 implements Contract {
     async sendSolve(provider: ContractProvider, n: bigint, m: bigint, maze: string[]) {
         const nn: bigint = BigInt(maze.length);
         const mm: bigint = BigInt(maze[0].length);
-        const {stack} = await provider.get('solve', [
+        const {stack, gasUsed } = await provider.get('solve', [
             {type: 'int', value: nn},
             {type: 'int', value: mm},
             {type: 'tuple', items: parseStringArray(maze)},
@@ -64,7 +64,8 @@ export class Task4 implements Contract {
 
         // const resItems =  await stack.readTuple();
         // console.log('stack', stack);
-        return [stack.readNumberOpt(), stack.readNumberOpt(), stack.readNumberOpt(),  parseTupleArrayAuto(stack.readTupleOpt())];
+        // return gasUsed;
+        return {stack: [stack.readNumberOpt(), stack.readNumberOpt(), stack.readNumberOpt(),  parseTupleArrayAuto(stack.readTupleOpt())], gasUsed};
         // const arranged = resItems.map((t: TupleItem, i: number) => {
         //     if(t.type === 'int') {
         //         return parseTupleItemInt(t);

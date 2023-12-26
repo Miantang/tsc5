@@ -91,8 +91,8 @@ describe('Task4', () => {
     });
 
     it('should solve', async () => {
-        // const res = await task4.sendSolve(8n, 8n, maze1);
-        // console.log('res task4', res.result);
+        const res = await task4.sendSolve(8n, 8n, maze1);
+        console.log('res task4', res.result);
         // const res2 = await task4Basic.sendSolve(5n, 8n, maze2)
     });
 });
