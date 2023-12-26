@@ -25,6 +25,24 @@ const parseStringArray = (maze: string[]) => {
     })
 }
 
+function parseTupleArrayAuto(tr: TupleReader | null, withString: boolean = true) {
+    if(!tr) {
+        return null;
+    }
+    return new Array(Number(tr.remaining)).fill(0).map((_: any, index: number) => {
+        const lineReader = tr.readTuple();
+        if(withString) {
+            return new Array(Number(lineReader.remaining)).fill(0).map((_: any, i2: number) => {
+                return String.fromCharCode(lineReader.readNumber());
+            }).join('');
+        }
+        return new Array(Number(lineReader.remaining)).fill(0).map((_: any, i2: number) => {
+            return lineReader.readNumber();
+        });
+        
+    })
+}
+
 export class Task4Basic implements Contract {
     constructor(readonly address: Address, readonly init?: { code: Cell; data: Cell }) {}
 
@@ -47,15 +65,17 @@ export class Task4Basic implements Contract {
     }
 
     async sendSolve(provider: ContractProvider, n: bigint, m: bigint, maze: string[]) {
+        const nn: bigint = BigInt(maze.length);
+        const mm: bigint = BigInt(maze[0].length);
         const {stack} = await provider.get('solve', [
-            {type: 'int', value: n},
-            {type: 'int', value: m},
+            {type: 'int', value: nn},
+            {type: 'int', value: mm},
             {type: 'tuple', items: parseStringArray(maze)},
         ]);
 
         // const resItems =  await stack.readTuple();
         // console.log('stack', stack);
-        return [stack.readNumberOpt(), stack.readNumberOpt(), stack.readNumberOpt(),  parseTupleArray(stack.readTupleOpt(), n, m)];
+        return [stack.readNumberOpt(), stack.readNumberOpt(), stack.readNumberOpt(),  parseTupleArrayAuto(stack.readTupleOpt())];
         // const arranged = resItems.map((t: TupleItem, i: number) => {
         //     if(t.type === 'int') {
         //         return parseTupleItemInt(t);
