@@ -219,10 +219,13 @@ tuple attachIndex(tuple originMaze, tuple path, cell visited, int backStep) inli
             if(c == 69) { ;; E
                 (int stone, int prob, int step) = split(visited.get?(72, cur));
                 path~tpush(cur);
-                return (-1, prob - 1, step, attachIndex(maze, path, visited, step));
+                return (-1, prob, step, attachIndex(maze, path, visited, step));
             }
-            int dIndex = 0;
 
+            tuple opacityPoint = empty_tuple();
+            tuple probabilityPoint = empty_tuple();
+            tuple stonePoint = empty_tuple();
+            int dIndex = 0;
             while(dIndex < 8) {
                 (int nx, int ny) = point_move(cur, dx.g(dIndex), dy.g(dIndex)); ;; 新坐标
                 if ((0 <= nx) & (nx < n) & ( 0 <= ny) & (ny < m)) { ;; 迷宫内的坐标
@@ -236,16 +239,27 @@ tuple attachIndex(tuple originMaze, tuple path, cell visited, int backStep) inli
                             path~tpush(cur);
                             (int stone, int prob, int step) = split(visited.get?(72, cur));
                             visited~udict_set_builder(72, p, begin_cell().store_uint(combine(stone,prob,step + 1), 256));
+                            opacityPoint~tpush(p);
                         } elseif(character == 63) { ;;?
-                            queue~tpush(p);
-                            path~tpush(cur);
-                            (int stone, int prob, int step) = split(visited.get?(72, cur));
-                            visited~udict_set_builder(72, p, begin_cell().store_uint(combine(stone,prob + 1,step + 1), 256));
+                            probabilityPoint~tpush(p);
+                            ;; queue~tpush(p);
+                            ;; path~tpush(cur);
+                            ;; (int stone, int prob, int step) = split(visited.get?(72, cur));
+                            ;; visited~udict_set_builder(72, p, begin_cell().store_uint(combine(stone,prob + 1,step + 1), 256));
                         }
                     }
 
                 } 
                 dIndex += 1;
+            }
+            if(opacityPoint.tlen() == 0) {
+                 while(probabilityPoint.tlen() != 0) {
+                    int p = probabilityPoint~tpop();
+                    queue~tpush(p);
+                    path~tpush(cur);
+                    (int stone, int prob, int step) = split(visited.get?(72, cur));
+                    visited~udict_set_builder(72, p, begin_cell().store_uint(combine(stone,prob + 1,step + 1), 256));
+                }
             }
         }
     }
