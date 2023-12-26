@@ -140,7 +140,7 @@ tuple attachIndex(tuple originMaze, tuple path, cell visited, int backStep) inli
         (int stone, int prob, int step) = split(visited.get?(16, xy));
         (int x, int y) = point(xy);
         if((step == backStep) & is_nearby(prexy, xy)) {
-            originMaze~tset(x, originMaze.g(x).tset(y, step + 48));
+            originMaze~tset(x, originMaze.g(x).tset(y, 33));
             prexy = xy;
             backStep -= 1;
         }
