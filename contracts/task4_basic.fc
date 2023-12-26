@@ -121,10 +121,11 @@ int is_nearby(int xy1, int xy2) inline {
     return (dx <= 1) & (dx >= -1) & (dy >= -1) & (dy <= 1);
 }
 
-int combine(int stone, int prob, int step, int xy) inline {
-    ;; xy 只是一个标识而已
+int combine(int stone, int prob, int step, int xy, int endxy) inline {
+    ;; 当前点到 终点的最近距离
+
     ;; return step * 1000000000 + prob * 1000000 + stone * 1000 + (xy / 10 + (xy % 100));
-    return  stone * 1000000000 + prob * 1000000 + step * 1000 + (xy / 10 + (xy % 100));
+    return  stone * 1000000000 + prob * 1000000 + step * 1000;
 }
 
 (int, int, int) split(int num) inline {
@@ -323,7 +324,7 @@ int less(int xy1, int xy2, cell visited) inline {
         cell visited = new_dict();
         ;; cell visited_pair = new_dict();
         queue~tpush(S);
-        visited~udict_set_builder(16, S, begin_cell().store_uint(combine(0, 0, 0, S), 40));
+        visited~udict_set_builder(16, S, begin_cell().store_uint(combine(0, 0, 0, S, E), 40));
         ;; visited_pair~udict_set_builder(40, combine(0, 0, 0, S), begin_cell().store_uint(S, 16));
         
         while(queue.tlen() != 0) {
@@ -348,7 +349,7 @@ int less(int xy1, int xy2, cell visited) inline {
 
                     int currentCost = visited.get?(16, cur);
                     (int stone, int prob, int step) = split(currentCost);
-                    int nextWillCost = combine(stone, prob + (character == 63 ? 1 : 0), step + 1, p);
+                    int nextWillCost = combine(stone, prob + (character == 63 ? 1 : 0), step + 1, p, E);
 
                     int nextCost = visited.get?(16, p); 
                     

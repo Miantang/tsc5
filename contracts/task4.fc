@@ -248,8 +248,8 @@ int less(int xy1, int xy2, cell visited) inline {
 
 ;; S 83  E69 X88  .46  ?63 !33
 (int, int, int, tuple) solve(int n, int m, tuple maze) method_id {
-    tuple dx = to_tuple([1, 0, -1, 0, 1, -1, -1, 1]);
-    tuple dy = to_tuple([0, 1, 0, -1, -1, 1, -1, 1]);
+    tuple dx = to_tuple([0, -1, -1, -1, 0, 1, 1, 1]);
+    tuple dy = to_tuple([1, 1, 0, -1, -1, -1, 0, 1]);
     int S = null();
     int E = null();
 
@@ -321,10 +321,10 @@ int less(int xy1, int xy2, cell visited) inline {
         tuple path = empty_tuple();
         tuple queue = empty_tuple();
         cell visited = new_dict();
-        cell visited_pair = new_dict();
+        ;; cell visited_pair = new_dict();
         queue~tpush(S);
         visited~udict_set_builder(16, S, begin_cell().store_uint(combine(0, 0, 0, S), 40));
-        visited_pair~udict_set_builder(40, combine(0, 0, 0, S), begin_cell().store_uint(S, 16));
+        ;; visited_pair~udict_set_builder(40, combine(0, 0, 0, S), begin_cell().store_uint(S, 16));
         
         while(queue.tlen() != 0) {
             ;; int cur = queue~unshift();
@@ -334,7 +334,7 @@ int less(int xy1, int xy2, cell visited) inline {
             if(c == 69) { ;; E
                 (int stone, int prob, int step) = split(visited.get?(16, cur));
                 path~tpush(cur);
-                return (-1, prob, step, attachIndex(maze, path, visited, step));
+                return (stone, prob, step, attachIndex(maze, path, visited, step));
                 ;; return (-1, prob, step, out);
             }
 
@@ -348,7 +348,7 @@ int less(int xy1, int xy2, cell visited) inline {
 
                     int currentCost = visited.get?(16, cur);
                     (int stone, int prob, int step) = split(currentCost);
-                    int nextWillCost = combine(stone, prob + (character == 63 ? 1 : 0), step + 1, p);
+                    int nextWillCost = combine(stone + (character == 88 ? 1 : 0), prob + (character == 63 ? 1 : 0), step + 1, p);
 
                     int nextCost = visited.get?(16, p); 
                     
@@ -359,16 +359,18 @@ int less(int xy1, int xy2, cell visited) inline {
                             ;; (int stone, int prob, int step) = split(currentCost);
                             ;; int conbined = combine(stone,prob,step + 1, p);
                             visited~udict_set_builder(16, p, begin_cell().store_uint(nextWillCost, 40));
-                            visited_pair~udict_set_builder(40, nextWillCost, begin_cell().store_uint(p, 16));
-                            out~tpush(to_tuple([p, nextWillCost]));
+                            ;; visited_pair~udict_set_builder(40, nextWillCost, begin_cell().store_uint(p, 16));
                         } elseif(character == 63) { ;;?
-                            out~tpush(to_tuple([p, nextWillCost]));
                             queue~tpush(p);
                             path~tpush(cur);
                             ;; (int stone, int prob, int step) = split(currentCost);
                             ;; int conbined = combine(stone,prob + 1, step + 1, p);
                             visited~udict_set_builder(16, p, begin_cell().store_uint(nextWillCost, 40));
-                            visited_pair~udict_set_builder(40, nextWillCost, begin_cell().store_uint(p, 16));
+                            ;; visited_pair~udict_set_builder(40, nextWillCost, begin_cell().store_uint(p, 16));
+                        } elseif(character == 88) {
+                            queue~tpush(p);
+                            path~tpush(cur);
+                            visited~udict_set_builder(16, p, begin_cell().store_uint(nextWillCost, 40));
                         }
                     }
 
@@ -387,6 +389,5 @@ int less(int xy1, int xy2, cell visited) inline {
         }
     }
 
-    return (-1, 0, 0, out);
-    ;; return (-1, maze.g(0).g(2), maze.g(0).g(3), maze);
+    return (0, 0, 0, null());
 }
