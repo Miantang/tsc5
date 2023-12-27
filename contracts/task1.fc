@@ -12,12 +12,12 @@ const CLAIM = 0xbb4be234;
 
     var ds = get_data().begin_parse(); ;; get data from storage and convert it into a slice to be able to read values
     var (public_key, execution_time, receiver, seqno) = (ds~load_uint(256), ds~load_uint(32),ds~load_msg_addr(), ds~load_uint(32)); ;; read values from storage
-    ds.end_parse(); ;; make sure we do not have anything in ds variable
+    ;; ds.end_parse(); ;; make sure we do not have anything in ds variable
 
     if(op == UPDATE) {
         var (query_id, signature) = (in_msg~load_uint(64), in_msg~load_bits(512)); ;; get signature from the message body
-        var left_in_msg = in_msg;
-        var c = left_in_msg~load_ref();
+        ;; var left_in_msg = in_msg;
+        var c = in_msg~load_ref();
         var cs = c.begin_parse();
         var mmm = cs;
         var (locked_for, new_seqno) = (cs~load_uint(32), cs~load_uint(32));  ;; get rest values from the message body
