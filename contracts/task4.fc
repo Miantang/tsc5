@@ -10,6 +10,7 @@ forall X -> (tuple) to_tuple (X x) asm "NOP";
 forall X -> X g(tuple t, int k) asm(t k) "INDEXVAR";
 forall X -> tuple s(tuple t, int k, X x) asm(t x k) "SETINDEXVAR";
 
+(slice, int) u_get?(cell dict, int key_len, int index) asm(index dict key_len) "DICTUGET";
 
 () recv_internal(slice in_msg_body) impure {
 
@@ -33,8 +34,18 @@ int get?(cell dict, int key_len, int index) inline {
     if(~ success) {
         return -2;
     }
-    (_, int step) = step_slice.skip_bits(12).load_uint(29);
-    return step;
+    ;; (_, int step) = step_slice.skip_bits(12).load_uint(29);
+    (_, int step) = step_slice.load_uint(41);
+    return step & 0x1fffffff; ;;
+    ;; (slice x, int m) = dict.u_get?(key_len, index);
+    ;; if(m != 0) {
+    ;;     ;; (_, int step) = step_slice.skip_bits(12).load_uint(29);
+    ;;     (_, int step) = x.load_uint(41);
+    ;;     step = step & 0x1fffffff; ;;
+    ;;     return step;
+    ;; }
+    ;; return -2;
+    
 }
 
 tuple attach(tuple originMaze, cell come_from, int startxy, int endxy) inline {
@@ -57,7 +68,16 @@ int combine(int stone, int prob, int step, int xy, int endxy) inline {
     ;; 当前点到 终点的最近距离 Chebyshev distance
     (int x, int y) = point(xy);
     (int endx, int endy) = point(endxy);
-    int dis = max(max(x, endx) - min(x, endx), max(y, endy - min(y, endy)));
+    int dx = endx - x;
+    int dy = endy - y;
+    if(dx < 0) {
+        dx = - dx;
+    }
+    if(dy < 0) {
+        dy = - dx;
+    }
+    int dis = max(dx, dy); ;; gas 26
+    ;; int dis = max(max(x, endx) - min(x, endx), max(y, endy - min(y, endy))); ;; gas 26 * 5
     ;; return step * 1000000000 + prob * 1000000 + stone * 1000 + (xy / 10 + (xy % 100));
     ;; return  stone * 1000000000 + prob * 1000000 + step * 1000 + dis;
     return  stone * 10000000 + prob * 100000 + step * 100 + dis;
@@ -86,6 +106,15 @@ int combine(int stone, int prob, int step, int xy, int endxy) inline {
         }
     }
     return (t2, nowMinItem);
+}
+
+(cell, int) ~unshiftmin(cell dict) inline {
+    (int cost, slice xy_slice, int success) = dict~udict::delete_get_min(29);
+    if(~ success) {
+        return (dict, 0);
+    }
+    (_, int xy) = xy_slice.load_uint(12);
+    return (dict, xy);
 }
 
 ;; S 83  E69 X88  .46  ?63 !33
@@ -119,12 +148,17 @@ int combine(int stone, int prob, int step, int xy, int endxy) inline {
         findN += 1;
     }
 
-    tuple queue = to_tuple([S]);
+    ;; tuple queue = to_tuple([S]);
+    cell queue_dict = new_dict();
     cell come_from = new_dict();
-    come_from~udict_set_builder(12, S, begin_cell().store_uint(3636, 12).store_uint(combine(0, 0, 0, S, E), 29));
+    int cost = combine(0, 0, 0, S, E);
+    come_from~udict_set_builder(12, S, begin_cell().store_uint(3636, 12).store_uint(cost, 29));
+    queue_dict~udict_set_builder(29, cost, begin_cell().store_uint(S, 12));
 
-    while(queue.tlen() != 0) {
-        int cur = queue~unshiftIter(come_from);
+    ;; while(queue.tlen() != 0) {
+    ;;     int cur = queue~unshiftIter(come_from);
+    while(~ queue_dict.dict_empty?()) {
+        int cur = queue_dict~unshiftmin();
         (int x, int y) = point(cur);
         int c = maze.g(x).g(y);
         if(c == 69) { ;; E
@@ -147,8 +181,9 @@ int combine(int stone, int prob, int step, int xy, int endxy) inline {
                 
                 if((nextCost == -2) | (nextWillCost < nextCost)) { ;; nextCost == -2 表示 not success
                     if((character == 46) | (character == 69) | (character == 63) | (character == 88)) { ;; . E
-                        queue~tpush(p);
+                        ;; queue~tpush(p);
                         come_from~udict_set_builder(12, p, begin_cell().store_uint(cur, 12).store_uint(nextWillCost, 29));
+                        queue_dict~udict_set_builder(29, nextWillCost, begin_cell().store_uint(p, 12));
                     }
                 }
 
