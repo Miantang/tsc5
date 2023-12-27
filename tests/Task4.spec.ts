@@ -148,6 +148,40 @@ const maze2 = [
     'XX..XX?XXXX..XX?XXXX..XX?XXXX..XX?XE',
   ];
 
+  const maze3 = [
+    'XXXXXXX.XXXXXXX..XXXXXXXX.XXXXX',
+    'XX.XSXX.XXX.XXXX.XXX.XXXX.XXX.X',
+    'X.X.XXXXXX.X.XXXXXX.X.XXXXXX.XX',
+    '.?XXXXX.X.?XXXXX.X.?XXXXX.X.?XX',
+    '?.XXXXX.X?.XXXXX.X?.XXXXX.X?.XX',
+    'XX..XXX.XXX..XXX.XXX..XXX.XXX.X',
+    'XX..XX?XXXX..XX?XXXX..XX?XXXX.X',
+    'XXX...XXXXXX...XXXXXX...XXXXXXX',
+    'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
+    'X.X.XXXXXX.X.XXXXXX.X.XXXXXX.XX',
+    '.?XXXXX.X.?XXXXX.X.?XXXXX.X.?XX',
+    '?.XXXXX.X?.XXXXX.X?.XXXXX.X?.XX',
+    'XX..XXX.XXX..XXX.XXX..XXX.XXX.X',
+    'XX..XX?XXXX..XX?XXXX..XX?XXXX.X',
+    'XXX...XXXXXX...XXXXXX...XXXXXXX',
+    'XXXXXXX.XXXXXXX..XXXXXXXX.XXXXX',
+    'XX.XXXX.XXX.XXXX.XXX.XXXX.XXX.X',
+    'X.X.XXXXXX.X.XXXXXX.X.XXXXXX.XX',
+    '.?XXXXX.X.?XXXXX.X.?XXXXX.X.?XX',
+    '?.XXXXX.X?.XXXXX.X?.XXXXX.X?.XX',
+    'XX..XXX.XXX..XXX.XXX..XXX.XXX.X',
+    'XX..XX?XXXX..XX?XXXX..XX?XXXX.X',
+    'XXX...XXXXXX...XXXXXX...XXXXXXX',
+    'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
+    'XXXXXXX.XXXXXXX..XXXXXXXX.XXXXX',
+    'XX.XXXX.XXX.XXXX.XXX.XXXX.XXX.X',
+    'X.X.XXXXXX.X.XXXXXX.X.XXXXXX.XX',
+    '.?XXXXX.X.?XXXXX.X.?XXXXX.X.?XX',
+    '?.XXXXX.X?.XXXXX.X?.XXXXX.X?.XX',
+    'XX..XXX.XXX..XXX.XXX..XXX.XXX.X',
+    'XX..XX?XXXX..XX?XXXX..XX?XXXX.E',
+  ];
+
 describe('Task4', () => {
     let code: Cell;
 
@@ -181,7 +215,7 @@ describe('Task4', () => {
     });
 
     it('should solve', async () => {
-        const res = await task4.sendSolve(8n, 8n, maze7);
+        const res = await task4.sendSolve(8n, 8n, maze3);
         console.log('res task4', res.result);
         // const res2 = await task4Basic.sendSolve(5n, 8n, maze2)
     });

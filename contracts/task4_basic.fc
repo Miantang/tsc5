@@ -2,69 +2,18 @@
 
 forall X -> tuple tset(tuple t, int k, X x) asm(t x k) "SETINDEXVAR";
 forall X -> (tuple, ()) ~tset(tuple t, int k, X x) asm(t x k) "SETINDEXVAR";
-forall X -> tuple tuples::tsetq(tuple t, int k, X x) asm(t x k) "SETINDEXVARQ";
-forall X -> (tuple, ()) ~tsetq(tuple t, int k, X x) asm(t x k) "SETINDEXVARQ";
 forall X -> (int) tuples::is_tuple(X t) asm "ISTUPLE";
-
 forall X -> (tuple, X) tpop(tuple t) asm "TPOP";
 (int) tlen (tuple t) asm "TLEN";
-int tuples::tlenq(tuple t) asm "QTLEN";
 forall X -> (tuple) to_tuple (X x) asm "NOP";
 
 forall X -> X g(tuple t, int k) asm(t k) "INDEXVAR";
 forall X -> tuple s(tuple t, int k, X x) asm(t x k) "SETINDEXVAR";
 
-;; (slice, (int)) load_digit (slice s)  {
-;;     int x = s~load_uint(8); ;; load 8 bits (one char) from slice
-;;     x -= 48; ;; char '0' has code of 48, so we substract it to get the digit as a number
-;;     return (s, (x)); ;; return our modified slice and loaded digit
-;; }
 
-;; () iterate_tuple (tuple t) impure {
-;;     repeat (t.tuple_length()) {
-;;         var value = t~tpop();
-;;         if (is_tuple(value)) {
-;;             tuple tuple_value = cast_to_tuple(value);
-;;             iterate_tuple(tuple_value);
-;;         }
-;;         else {
-;;             if(value > max_value) {
-;;                 max_value = value;
-;;             }
-;;         }
-;;     }
-;; }
-
-() recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
+() recv_internal(slice in_msg_body) impure {
 
 }
-
-;; int BFS(Node start, Node target) {
-;;     Queue<Node> q; // 核心数据结构
-;;     Set<Node> visited; // 避免走回头路
-    
-;;     q.offer(start); // 将起点加入队列
-;;     visited.add(start);
-
-;;     while (q not empty) {
-;;         int sz = q.size();
-;;         /* 将当前队列中的所有节点向四周扩散 */
-;;         for (int i = 0; i < sz; i++) {
-;;             Node cur = q.poll();
-;;             /* 划重点：这里判断是否到达终点 */
-;;             if (cur is target)
-;;                 return step;
-;;             /* 将 cur 的相邻节点加入队列 */
-;;             for (Node x : cur.adj()) {
-;;                 if (x not in visited) {
-;;                     q.offer(x);
-;;                     visited.add(x);
-;;                 }
-;;             }
-;;         }
-;;     }
-;;     // 如果走到这里，说明在图中没有找到目标节点
-;; }
 
 int one(int x, int y) inline {
     return x * 100 + y;
@@ -78,30 +27,18 @@ int one(int x, int y) inline {
     return (xy / 100 + dx, xy % 100 + dy);
 }
 
-(tuple, int) ~unshift(tuple queue) inline {
-    tuple t2 = empty_tuple();
-    int fst = queue.first();
-    repeat (queue.tlen()) {
-        int item = queue~tpop();
-        if(fst != item) {
-            t2~tpush(item);
-        }
-    }
-    return (t2, fst);
-}
 
 int get?(cell dict, int key_len, int index) inline {
     (slice step_slice, int success) = dict.udict_get?(key_len, index);
     if(~ success) {
         return -2;
     }
-    int step = step_slice~load_uint(40);
+    (_, int step) = step_slice.skip_bits(16).load_uint(40);
     return step;
 }
 
 tuple attach(tuple originMaze, cell come_from, int startxy, int endxy) inline {
     int pointer = endxy;
-    ;; tuple t = empty_tuple();
     int n = 0;
     do {
         (slice xy_slice, int success) = come_from.udict_get?(16, pointer);
@@ -114,32 +51,6 @@ tuple attach(tuple originMaze, cell come_from, int startxy, int endxy) inline {
     } until (pointer == 3636);
 
     return originMaze;
-
-    ;; tuple t = empty_tuple();
-    ;; int n = 0;
-    ;; (int key, slice val, int flag) = come_from.udict_get_min?(16);
-    ;; if(flag) {
-    ;;     int xy = val~load_uint(16);
-    ;;     t~tpush(to_tuple([n, key, xy]));
-    ;; }
-    ;; while (flag) {
-    ;;     (key, val, flag) = come_from.udict_get_next?(16, key);
-    ;;     if(flag) {
-
-    ;;         int xy = val~load_uint(16);
-    ;;         n += 1;
-    ;;         t~tpush(to_tuple([n, key, xy]));
-    ;;     }
-    ;; }
-    ;; return t;
-}
-
-int is_nearby(int xy1, int xy2) inline {
-    (int x1, int y1) = point(xy1);
-    (int x2, int y2) = point(xy2);
-    int dx = x1 - x2;
-    int dy = y1 - y2;
-    return (dx <= 1) & (dx >= -1) & (dy >= -1) & (dy <= 1);
 }
 
 int combine(int stone, int prob, int step, int xy, int endxy) inline {
@@ -154,85 +65,6 @@ int combine(int stone, int prob, int step, int xy, int endxy) inline {
 (int, int, int) split(int num) inline {
     ;; return ((num / 1000) % 1000,  (num / 1000000) % 1000, num / 1000000000);
     return (num / 1000000000, (num / 1000000) % 1000, (num / 1000) % 1000);
-}
-
-tuple attachIndex(tuple originMaze, tuple path, cell visited, int backStep, int backProb, int backStone) inline {
-    int prexy = path~tpop();
-    backStep -= 1;
-     repeat (path.tlen() - 1) {
-        int xy = path~tpop();
-        (int stone, int prob, int step) = split(visited.get?(16, xy));
-        (int x, int y) = point(xy);
-        if((step == backStep) & is_nearby(prexy, xy)) {
-            originMaze~tset(x, originMaze.g(x).tset(y, 33));
-            prexy = xy;
-            backStep -= 1;
-        }
-    }
-    return originMaze;
-}
-
-int less(int xy1, int xy2, cell visited) inline {
-    (int stone1, int prob1, int step1) = split(visited.get?(16, xy1));
-    (int stone2, int prob2, int step2) = split(visited.get?(16, xy2));
-    if(stone1 < stone2) {
-        return -1;
-    } elseif(stone1 == stone2) {
-        if(prob1 < prob2) {
-            return -1;
-        } elseif(prob1 == prob2) {
-            return step1 < step2;
-        } else {
-            return 0;
-        }
-    } else {
-        return 0;
-    }
-}
-
-(tuple, int) ~unshiftByCost(tuple queue,  cell visited) inline {
-    ;; sink
-    int i = 1;
-    int j = 1;
-    int len = queue.tlen();
-    ;; int item = queue.g(1);
-    ;; queue~tset(1, queue.g(len));
-    queue~tpop();
-    ;; while(i * 2 <= len - 1) {
-    ;;     j = i * 2;
-    ;;     if((j < len ) & less(queue.g(j), queue.g(j + 1), visited)) {
-    ;;         j += 1;
-    ;;     }
-    ;;     ifnot(less(queue.g(j), queue.g(j + 1), visited)) {
-    ;;         ;; break;
-    ;;     } else {
-    ;;         int xyUp = queue.g(i);
-    ;;         int xyDown = queue.g(j);
-    ;;         queue~tset(i, xyDown);
-    ;;         queue~tset(j, xyUp);
-    ;;     }
-    ;; }
-    return (queue, 0);
-}
-
-(tuple, int) ~unshiftSuper(tuple queue,  cell visited_pair) inline {
-    (int key, slice xy_slice, int success) = visited_pair.udict_get_max?(40);
-    tuple t2 = empty_tuple();
-
-    if(~ success) {
-        return (t2, 0);
-    }
-    int xy = xy_slice~load_uint(16);
-    int removed = 0;
-    repeat (queue.tlen()) {
-        int item = queue~tpop();
-        if(xy != item) {
-            t2~tpush(item);
-        } else {
-            removed = 10000;
-        }
-    }
-    return (t2, xy);
 }
 
 (tuple, int) ~unshiftIter(tuple queue, cell visited) inline {
@@ -254,157 +86,72 @@ int less(int xy1, int xy2, cell visited) inline {
     return (t2, nowMinItem);
 }
 
-(tuple, ()) ~pushByOrder(tuple queue, int value, cell visited) inline {
-    queue~tpush(value);
-    ;; swim
-    ;; int k = queue.tlen();
-    ;; int xyUp = queue.g(k / 2);
-    ;; int xyDown = queue.g(k);
-    ;; while(k > 1 & less(xyUp, xyDown, visited)) {
-    ;;     queue~tset(k / 2, xyDown);
-    ;;     queue~tset(k, xyUp);
-    ;;     k = k / 2;
-    ;;     xyUp = queue.g(k / 2);
-    ;;     xyDown = queue.g(k);
-    ;; }
-    return (queue, ());
-}
-
 ;; S 83  E69 X88  .46  ?63 !33
 (int, int, int, tuple) solve(int n, int m, tuple maze) method_id {
-    tuple dx = to_tuple([0, -1, -1, -1, 0, 1, 1, 1]);
-    tuple dy = to_tuple([1, 1, 0, -1, -1, -1, 0, 1]);
+    ;; set_gas_limit(1208925819614629174706176);
+    set_gas_limit(18446744073709552000);
+    tuple dx = to_tuple([1, 1, 0, -1, -1, -1, 0, 1]);
+    tuple dy = to_tuple([0, -1, -1, -1, 0, 1, 1, 1]);
     int S = null();
     int E = null();
 
+    ;; 40405gas
     int findN = 0; 
-    while(findN < n) {
+    int findedS = 0;
+    int findedE = 0;
+    while(((findedS != -1) | (findedE != -1)) & (findN < n)) {
         tuple line = maze.g(findN);
         int findM = 0;
-        while(findM < m) {
-             if(line.g(findM) == 83) {
+        while(((findedS != -1) | (findedE != -1)) & (findM < m)) {
+            int char = line.g(findM);
+             if(char == 83) {
                 S = one(findN, findM);
+                findedS = -1;
             }
-            if(line.g(findM) == 69) {
+            if(char == 69) {
                 E = one(findN, findM);
+                findedE = -1;
             }
             findM += 1;
         }
         findN += 1;
     }
 
-    ;; {  
-    ;;     tuple queue = empty_tuple();
-    ;;     tuple path = empty_tuple();
-    ;;     cell visited = new_dict();
-    ;;     cell visited_pair = new_dict();
-    ;;     visited~udict_set_builder(16, S, begin_cell().store_uint(0, 40));
-    ;;     visited_pair~udict_set_builder(40, 0, begin_cell().store_uint(S, 16));
-    ;;     queue~tpush(S);
-    ;;     ;; queue~pushByOrder(S, visited);
-    ;;     while(queue.tlen() != 0) {
-    ;;         int cur = queue~unshift();
-    ;;         ;; int cur = queue~unshiftByCost(visited);
-    ;;         (int x, int y) = point(cur);
-    ;;         int c = maze.g(x).g(y);
-    ;;         if(c == 69) { ;; E
-    ;;             (int stone, int prob, int step) = split(visited.get?(16, cur));
-    ;;             path~tpush(cur);
-    ;;             return (-1, 0, step, attachIndex(maze, path, visited, step));
-    ;;         }
-    ;;         int dIndex = 0;
+    tuple queue = to_tuple([S]);
+    cell come_from = new_dict();
+    come_from~udict_set_builder(16, S, begin_cell().store_uint(3636, 16).store_uint(combine(0, 0, 0, S, E), 40));
 
-    ;;         while(dIndex < 8) {
-    ;;             (int nx, int ny) = point_move(cur, dx.g(dIndex), dy.g(dIndex)); ;; 新坐标
-    ;;             if ((0 <= nx) & (nx < n) & ( 0 <= ny) & (ny < m)) { ;; 迷宫内的坐标
+    while(queue.tlen() != 0) {
+        int cur = queue~unshiftIter(come_from);
+        (int x, int y) = point(cur);
+        int c = maze.g(x).g(y);
+        if(c == 69) { ;; E
+            (int stone, int prob, int step) = split(come_from.get?(16, cur));
+            return (-1, prob, step, attach(maze, come_from, S, E));
+        }
 
-    ;;                 int p = one(nx, ny);
-    ;;                 var (_, success) = visited.udict_get?(16, p);
-    ;;                 if(~ success) {
-    ;;                     int character = maze.g(nx).g(ny);
-    ;;                     if((character == 46) | (character == 69)) { ;; . E
-    ;;                         path~tpush(cur);
-    ;;                         (int stone, int prob, int step) = split(visited.get?(16, cur));
-    ;;                         int combined = combine(stone,prob,step + 1, cur);
-    ;;                         visited~udict_set_builder(16, p, begin_cell().store_uint(combined, 40));
-    ;;                         visited_pair~udict_set_builder(40, combined, begin_cell().store_uint(p, 16));
-    ;;                         queue~tpush(p);
-    ;;                         ;; queue~pushByOrder(p, visited);
-    ;;                     }
-    ;;                 }
+        int dIndex = 0;
+        while(dIndex < 8) {
+            (int nx, int ny) = point_move(cur, dx.g(dIndex), dy.g(dIndex)); ;; 新坐标
+            if ((0 <= nx) & (nx < n) & ( 0 <= ny) & (ny < m)) { ;; 迷宫内的坐标
 
-    ;;             } 
-    ;;             dIndex += 1;
-    ;;         }
-    ;;     }
-    ;; }
+                int p = one(nx, ny);
+                int character = maze.g(nx).g(ny);
 
-    tuple out = empty_tuple();
+                (int stone, int prob, int step) = split(come_from.get?(16, cur));
+                int nextWillCost = combine(0, prob + (character == 63 ? 1 : 0), step + 1, p, E);
 
-    {  
-        tuple path = empty_tuple();
-        tuple queue = empty_tuple();
-        cell visited = new_dict();
-        cell come_from = new_dict();
-        ;; cell visited_pair = new_dict();
-        queue~tpush(S);
-        visited~udict_set_builder(16, S, begin_cell().store_uint(combine(0, 0, 0, S, E), 40));
-        come_from~udict_set_builder(16, S, begin_cell().store_uint(3636, 16));
-
-        while(queue.tlen() != 0) {
-            ;; int cur = queue~unshift();
-            int cur = queue~unshiftIter(visited);
-            (int x, int y) = point(cur);
-            int c = maze.g(x).g(y);
-            if(c == 69) { ;; E
-                (int stone, int prob, int step) = split(visited.get?(16, cur));
-                path~tpush(cur);
-                ;; return (-1, prob, step, attachIndex(maze, path, visited, step, prob, stone));
-                return (-1, prob, step, attach(maze, come_from, S, E));
-            }
-
-            int dIndex = 0;
-            while(dIndex < 8) {
-                (int nx, int ny) = point_move(cur, dx.g(dIndex), dy.g(dIndex)); ;; 新坐标
-                if ((0 <= nx) & (nx < n) & ( 0 <= ny) & (ny < m)) { ;; 迷宫内的坐标
-
-                    int p = one(nx, ny);
-                    int character = maze.g(nx).g(ny);
-
-                    int currentCost = visited.get?(16, cur);
-                    (int stone, int prob, int step) = split(currentCost);
-                    int nextWillCost = combine(stone, prob + (character == 63 ? 1 : 0), step + 1, p, E);
-
-                    int nextCost = visited.get?(16, p); 
-                    
-                    if((nextCost == -2) | (nextWillCost < nextCost)) { ;; nextCost == -2 表示 not success
-                        if((character == 46) | (character == 69)) { ;; . E
-                            queue~tpush(p);
-                            path~tpush(cur);
-                            come_from~udict_set_builder(16, p, begin_cell().store_uint(cur, 16));
-                            ;; (int stone, int prob, int step) = split(currentCost);
-                            ;; int conbined = combine(stone,prob,step + 1, p);
-                            visited~udict_set_builder(16, p, begin_cell().store_uint(nextWillCost, 40));
-                        } elseif(character == 63) { ;;?
-                            queue~tpush(p);
-                            path~tpush(cur);
-                            come_from~udict_set_builder(16, p, begin_cell().store_uint(cur, 16));
-                            visited~udict_set_builder(16, p, begin_cell().store_uint(nextWillCost, 40));
-                        }
+                int nextCost = come_from.get?(16, p); 
+                
+                if((nextCost == -2) | (nextWillCost < nextCost)) { ;; nextCost == -2 表示 not success
+                    if((character == 46) | (character == 69) | (character == 63)) { ;; . E
+                        queue~tpush(p);
+                        come_from~udict_set_builder(16, p, begin_cell().store_uint(cur, 16).store_uint(nextWillCost, 40));
                     }
-
                 }
-                dIndex += 1;
+
             }
-            ;; if(opacityPoint.tlen() == 0) {
-            ;;      while(probabilityPoint.tlen() != 0) {
-            ;;         int p = probabilityPoint~tpop();
-            ;;         queue~tpush(p);
-            ;;         path~tpush(cur);
-            ;;         (int stone, int prob, int step) = split(visited.get?(16, cur));
-            ;;         visited~udict_set_builder(16, p, begin_cell().store_uint(combine(stone,prob + 1,step + 1), 40));
-            ;;     }
-            ;; }
+            dIndex += 1;
         }
     }
 

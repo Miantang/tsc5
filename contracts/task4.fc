@@ -33,7 +33,7 @@ int get?(cell dict, int key_len, int index) inline {
     if(~ success) {
         return -2;
     }
-    (_, int step) = step_slice.skip_bits(16).load_uint(40);
+    (_, int step) = step_slice.skip_bits(12).load_uint(40);
     return step;
 }
 
@@ -41,8 +41,8 @@ tuple attach(tuple originMaze, cell come_from, int startxy, int endxy) inline {
     int pointer = endxy;
     int n = 0;
     do {
-        (slice xy_slice, int success) = come_from.udict_get?(16, pointer);
-        int xy = xy_slice~load_uint(16);
+        (slice xy_slice, int success) = come_from.udict_get?(12, pointer);
+        int xy = xy_slice~load_uint(12);
         (int x, int y) = point(xy);
         if((xy != 3636) & (xy != startxy)) {
             originMaze~tset(x, originMaze.g(x).tset(y, 33));
@@ -70,10 +70,10 @@ int combine(int stone, int prob, int step, int xy, int endxy) inline {
 (tuple, int) ~unshiftIter(tuple queue, cell visited) inline {
     tuple t2 = empty_tuple();
     int nowMinItem = queue.first();
-    int minCost = visited.get?(16, nowMinItem);
+    int minCost = visited.get?(12, nowMinItem);
     repeat (queue.tlen() - 1) {
         int item = queue~tpop();
-        int cost = visited.get?(16, item);
+        int cost = visited.get?(12, item);
 
         if(minCost > cost) {
             t2~tpush(nowMinItem);
@@ -88,9 +88,10 @@ int combine(int stone, int prob, int step, int xy, int endxy) inline {
 
 ;; S 83  E69 X88  .46  ?63 !33
 (int, int, int, tuple) solve(int n, int m, tuple maze) method_id {
-    set_gas_limit(4611686018427388000);
-    tuple dx = to_tuple([0, -1, -1, -1, 0, 1, 1, 1]);
-    tuple dy = to_tuple([1, 1, 0, -1, -1, -1, 0, 1]);
+    ;; set_gas_limit(1208925819614629174706176);
+    set_gas_limit(18446744073709552000);
+    tuple dx = to_tuple([1, 1, 0, -1, -1, -1, 0, 1]);
+    tuple dy = to_tuple([0, -1, -1, -1, 0, 1, 1, 1]);
     int S = null();
     int E = null();
 
@@ -118,14 +119,14 @@ int combine(int stone, int prob, int step, int xy, int endxy) inline {
 
     tuple queue = to_tuple([S]);
     cell come_from = new_dict();
-    come_from~udict_set_builder(16, S, begin_cell().store_uint(3636, 16).store_uint(combine(0, 0, 0, S, E), 40));
+    come_from~udict_set_builder(12, S, begin_cell().store_uint(3636, 12).store_uint(combine(0, 0, 0, S, E), 40));
 
     while(queue.tlen() != 0) {
         int cur = queue~unshiftIter(come_from);
         (int x, int y) = point(cur);
         int c = maze.g(x).g(y);
         if(c == 69) { ;; E
-            (int stone, int prob, int step) = split(come_from.get?(16, cur));
+            (int stone, int prob, int step) = split(come_from.get?(12, cur));
             return (stone, prob, step, attach(maze, come_from, S, E));
         }
 
@@ -137,15 +138,15 @@ int combine(int stone, int prob, int step, int xy, int endxy) inline {
                 int p = one(nx, ny);
                 int character = maze.g(nx).g(ny);
 
-                (int stone, int prob, int step) = split(come_from.get?(16, cur));
+                (int stone, int prob, int step) = split(come_from.get?(12, cur));
                 int nextWillCost = combine(stone + (character == 88 ? 1 : 0), prob + (character == 63 ? 1 : 0), step + 1, p, E);
 
-                int nextCost = come_from.get?(16, p); 
+                int nextCost = come_from.get?(12, p); 
                 
                 if((nextCost == -2) | (nextWillCost < nextCost)) { ;; nextCost == -2 表示 not success
                     if((character == 46) | (character == 69) | (character == 63) | (character == 88)) { ;; . E
                         queue~tpush(p);
-                        come_from~udict_set_builder(16, p, begin_cell().store_uint(cur, 16).store_uint(nextWillCost, 40));
+                        come_from~udict_set_builder(12, p, begin_cell().store_uint(cur, 12).store_uint(nextWillCost, 40));
                     }
                 }
 
