@@ -1,5 +1,5 @@
 import { Blockchain, SandboxContract } from '@ton-community/sandbox';
-import { Cell, toNano } from 'ton-core';
+import { address, Cell, toNano } from 'ton-core';
 import { Task2 } from '../wrappers/Task2';
 import '@ton-community/test-utils';
 import { compile } from '@ton-community/blueprint';
@@ -19,16 +19,16 @@ describe('Task2', () => {
         blockchain = await Blockchain.create();
         const deployer = await blockchain.treasury('deployer');
         const sender = deployer.getSender();
-
-        task2 = blockchain.openContract(Task2.createFromConfig({admin:sender.address }, code));
+        const adminAddr = randomAddress(0);
+        task2 = blockchain.openContract(Task2.createFromConfig({ admin: adminAddr }, code));
 
 
         const deployResult = await task2.sendDeploy(sender, toNano('0.05'));
 
         expect(deployResult.transactions).toHaveTransaction({
-            // from: deployer.address,
-            // to: task2.address,
-            // deploy: true,
+            from: deployer.address,
+            to: task2.address,
+            deploy: true,
             success: true,
         });
     });

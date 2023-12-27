@@ -40,7 +40,7 @@ slice parse_sender_address (cell in_msg_full) inline {
         slice sender_address = parse_sender_address(in_msg_full);
         throw_if(120, ~ equal_slices(sender_address, admin_address));
 
-        var users = ds~load_dict();
+        cell users = ds~load_dict();
         if(dict_empty?(users)) {
             users = new_dict();
         }
@@ -64,7 +64,7 @@ slice parse_sender_address (cell in_msg_full) inline {
 
         slice addressInt = in_msg~load_msg_addr();
         (int workchain, int addressHash) = parse_std_addr(addressInt);
-         var users = ds~load_dict();
+        cell users = ds~load_dict();
          
         throw_if(121, users.dict_empty?());
         int success? = users~udict_delete?(256, addressHash);
@@ -77,29 +77,42 @@ slice parse_sender_address (cell in_msg_full) inline {
     }
 
     if(op == SPLIT) {
-        ;; slice sender_address = parse_sender_address(in_msg_full);
-        ;; throw_if(120, ~ equal_slices(sender_address, admin_address));
-        var users = ds~load_dict();
+        cell users = ds~load_dict();
         throw_if(122, users.dict_empty?());
-        (int key, slice val, int flag) = users.udict_get_min?(256);
-        while (flag) {
+       (int key, slice val, int success) = users.udict_get_min?(256);
+        int total_share = val~load_uint(32);
+        while (success) {
             ;; do something with pair key->val
-            (key, val, flag) = users.udict_get_next?(256, key);
-             if (flag) {
-                ;; int valid_until = cs~load_uint(64);
-                ;; if (valid_until < now()) {
-                ;;     dic~udict_delete?(256, key);
-                ;; }
+            (key, val, success) = users.udict_get_next?(256, key);
+            if (success) {
+                int share = val~load_uint(32);
+                total_share += share;
             }
         }
+       {
+            (int key, slice val, int success) = users.udict_get_min?(256);
+            int total_share = val~load_uint(32);
+            while (success) {
+                ;; do something with pair key->val
+                (key, val, success) = users.udict_get_next?(256, key);
+                if (success) {
+                    int share = val~load_uint(32);
+                     cell msg = begin_cell()
+                        .store_uint(0x18, 6) ;; flags
+                        .store_slice(key) ;; destination address
+                        .store_coins((share * my_balance) / total_share) ;; we don't care about this value right now
+                        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1) ;; default message headers (see sending messages page)
+                    .end_cell();
+                    send_raw_message(msg, 1);
+                }
+            }
+       }
 
         return ();
     }
 
     if(op == TRANSFER) {
-        ;; slice sender_address = parse_sender_address(in_msg_full);
-        ;; throw_if(120, ~ equal_slices(sender_address, admin_address));
-        var users = ds~load_dict();
+        cell users = ds~load_dict();
         throw_if(122, users.dict_empty?());
         int amount = in_msg~load_coins();
 
@@ -114,7 +127,7 @@ cell get_users() method_id {
     var ds = get_data().begin_parse(); ;; get data from storage and convert it into a slice to be able to read values
     slice addr = ds~load_msg_addr();
     ;; int epyt = ds~load_uint(1);
-    var users = ds~load_dict();
+    cell users = ds~load_dict();
     if(users.dict_empty?()) {
         return new_dict();
     }
@@ -137,6 +150,9 @@ int get_user_share(slice user_address) method_id {
     ;; slice address =  begin_cell().store_uint(addressHash, 256).end_cell().begin_parse();
     ;; var (dict, a, share_s, success) = dict.udict_get?(256, address);
     (slice share_s, int success) = users.udict_get?(256, addressHash);
+    if(~ success) {
+        return null();
+    }
     int share = share_s~load_uint(32);
     ;; (cell c, int share) = users.udict_get?(256, addressHash);
     return share;
