@@ -58,6 +58,96 @@ const maze2 = [
     'XX..EXXX'
   ]
 
+  const maze8 = [
+    'XXXXXXX.XXXXXXX',
+    'XX.XSXX.XXX.XXX',
+    'X.X.XXXXXX.X.XX',
+    '.?XXXXX.X.?XXXX',
+    '?.XXXXX.X?.XXXX',
+    'XX..XXX.XXX..XX',
+    'XX..XX?XXXX..XX',
+    'XXX...XXXXXX...',
+    'XXXXXXXXXXXXXXX',
+    'XXXXXXX.XXXXXXX',
+    'XX.XXXX.XXX.XXX',
+    'X.X.XXXXXX.X.XX',
+    '.?XXXXX.X.?XXXX',
+    '?.XXXXX.X?.XXXX',
+    'XX..XXX.XXX..XX',
+    'XX..XX?XXXX..XE'
+  ];
+
+  const maze9 = [
+    'XXXXXXX.XX',
+    'XX.XSXX.XX',
+    'X.X.XXXXXX',
+    'X?XXXXX.X.',
+    '?.XXXXX.X?',
+    'XX..XXX.XX',
+    'XX..XX?XXX',
+    'XXX...XXXX',
+    'XXXXXXXXXX',
+    'XXXXXXXXXX',
+    'XX..XX?XEX'
+  ];
+
+  const maze7 = [
+    'XXXXXXX.XXXXXXX..X',
+    'XX.XSXX.XXX.XXXX.X',
+    'X.X.XXXXXX.X.XXXXX',
+    '.?XXXXX.X.?XXXXX.X',
+    '?.XXXXX.X?.XXXXX.X',
+    'XX..XXX.XXX..XXX.X',
+    'XX..XX?XXXX..XX?XX',
+    'XXX...XXXXXX...XXX',
+    'XXXXXXXXXXXXXXXXXX',
+    'XXXXXXX.XXXXXXX..X',
+    'XX.XXXX.XXX.XXXX.X',
+    'X.X.XXXXXX.X.XXXXX',
+    '.?XXXXX.X.?XXXXX.X',
+    '?.XXXXX.X?.XXXXX.X',
+    'XX..XXX.XXX..XXX.X',
+    'XX..XX?XXXX..XX?XX',
+    'XXX...XXXXXX...XEX',
+    'XXXXXXX.XXXXXXX..X',
+  ];
+
+  const maze6 = [
+    'XXXXXXX.XXXXXXX..XXXXXXXX.XXXXXXX..X',
+    'XX.XSXX.XXX.XXXX.XXX.XXXX.XXX.XXXX.X',
+    'X.X.XXXXXX.X.XXXXXX.X.XXXXXX.X.XXXXX',
+    '.?XXXXX.X.?XXXXX.X.?XXXXX.X.?XXXXX.X',
+    '?.XXXXX.X?.XXXXX.X?.XXXXX.X?.XXXXX.X',
+    'XX..XXX.XXX..XXX.XXX..XXX.XXX..XXX.X',
+    'XX..XX?XXXX..XX?XXXX..XX?XXXX..XX?XX',
+    'XXX...XXXXXX...XXXXXX...XXXXXX...XXX',
+    'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
+    'XXXXXXX.XXXXXXX..XXXXXXXX.XXXXXXX..X',
+    'XX.XXXX.XXX.XXXX.XXX.XXXX.XXX.XXXX.X',
+    'X.X.XXXXXX.X.XXXXXX.X.XXXXXX.X.XXXXX',
+    '.?XXXXX.X.?XXXXX.X.?XXXXX.X.?XXXXX.X',
+    '?.XXXXX.X?.XXXXX.X?.XXXXX.X?.XXXXX.X',
+    'XX..XXX.XXX..XXX.XXX..XXX.XXX..XXX.X',
+    'XX..XX?XXXX..XX?XXXX..XX?XXXX..XX?XX',
+    'XXX...XXXXXX...XXXXXX...XXXXXX...XXX',
+    'XXXXXXX.XXXXXXX..XXXXXXXX.XXXXXXX..X',
+    'XX.XXXX.XXX.XXXX.XXX.XXXX.XXX.XXXX.X',
+    'X.X.XXXXXX.X.XXXXXX.X.XXXXXX.X.XXXXX',
+    '.?XXXXX.X.?XXXXX.X.?XXXXX.X.?XXXXX.X',
+    '?.XXXXX.X?.XXXXX.X?.XXXXX.X?.XXXXX.X',
+    'XX..XXX.XXX..XXX.XXX..XXX.XXX..XXX.X',
+    'XX..XX?XXXX..XX?XXXX..XX?XXXX..XX?XX',
+    'XXX...XXXXXX...XXXXXX...XXXXXX...XXX',
+    'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
+    'XXXXXXX.XXXXXXX..XXXXXXXX.XXXXXXX..X',
+    'XX.XXXX.XXX.XXXX.XXX.XXXX.XXX.XXXX.X',
+    'X.X.XXXXXX.X.XXXXXX.X.XXXXXX.X.XXXXX',
+    '.?XXXXX.X.?XXXXX.X.?XXXXX.X.?XXXXX.X',
+    '?.XXXXX.X?.XXXXX.X?.XXXXX.X?.XXXXX.X',
+    'XX..XXX.XXX..XXX.XXX..XXX.XXX..XXX.X',
+    'XX..XX?XXXX..XX?XXXX..XX?XXXX..XX?XE',
+  ];
+
 describe('Task4', () => {
     let code: Cell;
 
@@ -91,7 +181,7 @@ describe('Task4', () => {
     });
 
     it('should solve', async () => {
-        const res = await task4.sendSolve(8n, 8n, maze1);
+        const res = await task4.sendSolve(8n, 8n, maze7);
         console.log('res task4', res.result);
         // const res2 = await task4Basic.sendSolve(5n, 8n, maze2)
     });

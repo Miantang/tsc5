@@ -88,6 +88,7 @@ int combine(int stone, int prob, int step, int xy, int endxy) inline {
 
 ;; S 83  E69 X88  .46  ?63 !33
 (int, int, int, tuple) solve(int n, int m, tuple maze) method_id {
+    set_gas_limit(4611686018427388000);
     tuple dx = to_tuple([0, -1, -1, -1, 0, 1, 1, 1]);
     tuple dy = to_tuple([1, 1, 0, -1, -1, -1, 0, 1]);
     int S = null();
