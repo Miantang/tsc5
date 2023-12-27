@@ -33,7 +33,7 @@ int get?(cell dict, int key_len, int index) inline {
     if(~ success) {
         return -2;
     }
-    (_, int step) = step_slice.skip_bits(12).load_uint(40);
+    (_, int step) = step_slice.skip_bits(12).load_uint(29);
     return step;
 }
 
@@ -59,12 +59,14 @@ int combine(int stone, int prob, int step, int xy, int endxy) inline {
     (int endx, int endy) = point(endxy);
     int dis = max(max(x, endx) - min(x, endx), max(y, endy - min(y, endy)));
     ;; return step * 1000000000 + prob * 1000000 + stone * 1000 + (xy / 10 + (xy % 100));
-    return  stone * 1000000000 + prob * 1000000 + step * 1000 + dis;
+    ;; return  stone * 1000000000 + prob * 1000000 + step * 1000 + dis;
+    return  stone * 10000000 + prob * 100000 + step * 100 + dis;
 }
 
 (int, int, int) split(int num) inline {
     ;; return ((num / 1000) % 1000,  (num / 1000000) % 1000, num / 1000000000);
-    return (num / 1000000000, (num / 1000000) % 1000, (num / 1000) % 1000);
+    ;; return (num / 1000000000, (num / 1000000) % 1000, (num / 1000) % 1000);
+    return (num / 10000000, (num / 100000) % 100, (num / 100) % 100);
 }
 
 (tuple, int) ~unshiftIter(tuple queue, cell visited) inline {
@@ -119,7 +121,7 @@ int combine(int stone, int prob, int step, int xy, int endxy) inline {
 
     tuple queue = to_tuple([S]);
     cell come_from = new_dict();
-    come_from~udict_set_builder(12, S, begin_cell().store_uint(3636, 12).store_uint(combine(0, 0, 0, S, E), 40));
+    come_from~udict_set_builder(12, S, begin_cell().store_uint(3636, 12).store_uint(combine(0, 0, 0, S, E), 29));
 
     while(queue.tlen() != 0) {
         int cur = queue~unshiftIter(come_from);
@@ -146,7 +148,7 @@ int combine(int stone, int prob, int step, int xy, int endxy) inline {
                 if((nextCost == -2) | (nextWillCost < nextCost)) { ;; nextCost == -2 表示 not success
                     if((character == 46) | (character == 69) | (character == 63) | (character == 88)) { ;; . E
                         queue~tpush(p);
-                        come_from~udict_set_builder(12, p, begin_cell().store_uint(cur, 12).store_uint(nextWillCost, 40));
+                        come_from~udict_set_builder(12, p, begin_cell().store_uint(cur, 12).store_uint(nextWillCost, 29));
                     }
                 }
 
