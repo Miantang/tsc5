@@ -133,7 +133,8 @@ int get_fee (cell in_msg_full) inline {
                     int share = val~load_uint(32);
                      cell msg = begin_cell()
                         .store_uint(0x18, 6) ;; flags
-                        .store_slice(get_serialized_address(0, key)) ;; destination address
+                        .store_slice(admin_address) ;; destination address
+                        ;; .store_slice(get_serialized_address(0, key)) ;; destination address
                         .store_coins((share * (my_balance - fee)) / total_share) ;; we don't care about this value right now
                         .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1) ;; default message headers (see sending messages page)
                     .end_cell();
@@ -181,7 +182,7 @@ int get_fee (cell in_msg_full) inline {
 
                     cell msg = begin_cell()
                     .store_uint(0x10, 6) ;; we should not bounce here cause receiver can have uninitialized contract
-                    .store_slice(admin_address)  ;; ? sender_address admin_address is 9/11 ok all?
+                    .store_slice(sender_address)  ;; ? sender_address admin_address is 9/11 ok all?
                     .store_coins(1) ;;forward_ton_amount
                     .store_uint(1, 1 + 4 + 4 + 64 + 32 + 1 + 1)
                     .store_ref(trans_msg_body)
