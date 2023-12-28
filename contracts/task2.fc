@@ -132,10 +132,10 @@ int get_fee (cell in_msg_full) inline {
                 if (success) {
                     int share = val~load_uint(32);
                      cell msg = begin_cell()
-                        .store_uint(0x18, 6) ;; flags
+                        .store_uint(0x10, 6) ;; flags
                         ;; .store_slice(admin_address) ;; destination address
                         .store_slice(get_serialized_address(0, key)) ;; destination address
-                        .store_coins(muldiv(share, msg_value, total_share)) ;; we don't care about this value right now
+                        .store_coins(muldiv(share, my_balance, total_share)) 
                         .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1) ;; default message headers (see sending messages page)
                     .end_cell();
                     send_raw_message(msg, 1);
@@ -169,12 +169,14 @@ int get_fee (cell in_msg_full) inline {
             while (success) {
                 ;; do something with pair key->val
                 (key, val, success) = users.udict_get_next?(256, key);
+                slice userAddr = get_serialized_address(0, key);
                 if (success) {
                     int share = val~load_uint(32);
                     cell trans_msg_body = begin_cell()
                         .store_uint(0x7362d09c, 32)
                         .store_uint(query_id, 64)
-                        .store_coins((share * amount) / total_share)
+                        .store_coins(muldiv(share, amount, total_share))
+                        ;; .store_coins((share * amount) / total_share)
                         .store_slice(admin_address) ;; sender_address / get_serialized_address(0, key) is from_address  ? is OK?
                         ;; .store_slice(get_serialized_address(0, key)) ;; is from_address  IS OK?
                         .end_cell();
@@ -182,7 +184,7 @@ int get_fee (cell in_msg_full) inline {
 
                     cell msg = begin_cell()
                     .store_uint(0x10, 6) ;; we should not bounce here cause receiver can have uninitialized contract
-                    .store_slice(get_serialized_address(0, key))  ;; ? sender_address admin_address is 9/11 ok all?
+                    .store_slice(userAddr)  ;; ? sender_address admin_address is 9/11 ok all?
                     .store_coins(1) ;;forward_ton_amount
                     .store_uint(1, 1 + 4 + 4 + 64 + 32 + 1 + 1)
                     .store_ref(trans_msg_body)
@@ -190,14 +192,17 @@ int get_fee (cell in_msg_full) inline {
 
                     send_raw_message(msg, 1);
 
-                    var msg = begin_cell()
+
+                    if ((userAddr.preload_uint(2) != 0) & (msg_value > 0)) {
+                        var msg = begin_cell()
                         .store_uint(0x10, 6) ;; nobounce - int_msg_info$0 ihr_disabled:Bool bounce:Bool bounced:Bool src:MsgAddress -> 010000
-                        .store_slice(get_serialized_address(0, key))
-                        .store_coins(20000000)
+                        .store_slice(userAddr)
+                        .store_coins(msg_value)
                         .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
                         .store_uint(0xd53276db, 32)
                         .store_uint(query_id, 64);
-                    send_raw_message(msg.end_cell(), 2);
+                        send_raw_message(msg.end_cell(), 2);
+                    }
                 }
             }
             
