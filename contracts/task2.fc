@@ -99,7 +99,7 @@ int get_fee (cell in_msg_full) inline {
         (int workchain, int addressHash) = parse_std_addr(addressInt);
         cell users = ds~load_dict();
          
-        throw_if(121, users.dict_empty?());
+        ;; throw_if(121, users.dict_empty?());
         int success? = users~udict_delete?(256, addressHash);
         throw_unless(121, success?);
          set_data(begin_cell()
@@ -111,7 +111,7 @@ int get_fee (cell in_msg_full) inline {
 
     if(op == SPLIT) {
         cell users = ds~load_dict();
-        ;; throw_if(122, users.dict_empty?());
+        throw_if(122, users.dict_empty?());
        (int key, slice val, int success) = users.udict_get_min?(256);
         int total_share = val~load_uint(32);
         while (success) {
@@ -135,7 +135,7 @@ int get_fee (cell in_msg_full) inline {
                         .store_uint(0x18, 6) ;; flags
                         ;; .store_slice(admin_address) ;; destination address
                         .store_slice(get_serialized_address(0, key)) ;; destination address
-                        .store_coins((share * msg_value) / total_share) ;; we don't care about this value right now
+                        .store_coins(muldiv(share, msg_value, total_share)) ;; we don't care about this value right now
                         .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1) ;; default message headers (see sending messages page)
                     .end_cell();
                     send_raw_message(msg, 1);
