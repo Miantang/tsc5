@@ -43,8 +43,8 @@ describe('Task2', () => {
         const sender = deployer.getSender();
 
         const taskUpdate = await task2.sendDict(sender, toNano('0.01'));
-        const m:any = await task2.getState();
-        // console.log('m', m, taskUpdate.transactions);
+        const m:any = await task2.getAdmin();
+        console.log('m',  m);
         expect(taskUpdate.transactions).toHaveTransaction({
             op: 0x66666666,
         });
@@ -92,7 +92,7 @@ describe('Task2', () => {
         const deployer = await blockchain.treasury('deployer');
         const sender = deployer.getSender();
         const taskUpdate = await task2.sendSplit(sender, toNano('0.01'));
-        const m:any = await task2.getState();
+        const m:any = await task2.getAdmin();
         // console.log('m', taskUpdate.transactions, m.address, sender.address, m.address.equals(sender.address));
         expect(taskUpdate.transactions).toHaveTransaction({
             op: 0x068530b3,

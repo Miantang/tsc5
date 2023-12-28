@@ -1,4 +1,4 @@
-import { Address, beginCell, Dictionary, Cell, Contract, contractAddress, ContractProvider, Sender, SendMode } from 'ton-core';
+import { Address, beginCell, Dictionary, Cell, Contract, contractAddress, ContractProvider, Sender, SendMode, TupleReader } from 'ton-core';
 import { randomAddress } from '@ton-community/test-utils';
 
 export type Task2Config = {
@@ -10,6 +10,16 @@ export function task2ConfigToCell(config: Task2Config): Cell {
     .storeAddress(config.admin)
     .storeDict(Dictionary.empty())
     .endCell();
+}
+
+function parseTupleArrayAuto(tr: TupleReader | null) {
+    return tr;
+    if(!tr) {
+        return null;
+    }
+    // return new Array(Number(tr.remaining)).fill(0).map((_: any, index: number) => {
+    //     return tr.readNumber();
+    // })
 }
 
 export class Task2 implements Contract {
@@ -79,9 +89,13 @@ export class Task2 implements Contract {
         })
     }
 
-    async getState(provider: ContractProvider) {
+    async getAdmin(provider: ContractProvider) {
         const {stack} = await provider.get('get_admin', []);
-        return stack.readAddress()
+        // const addr = stack.readAddress();
+        // const list = stack.readTuple();
+        return [stack.readAddress(), stack.readAddress(), stack.readBigNumberOpt(), stack.readBigNumberOpt(), stack.readBoolean()];
+        // return [addr, parseTupleArrayAuto(stack.readTuple())];
+        // return [addr, [list.readBigNumberOpt(), list.readBigNumberOpt(), list.readBigNumberOpt(), list.readAddress()]];
         // return await provider.getState()
     }
 
