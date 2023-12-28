@@ -19,6 +19,20 @@ slice parse_sender_address (cell in_msg_full) inline {
     return sender_address;
 }
 
+int get_fee (cell in_msg_full) inline {
+    var cs = in_msg_full.begin_parse();
+    var flags = cs~load_uint(4);
+     cs~load_msg_addr(); ;;sender_address
+
+    cs~load_msg_addr(); ;; skip dst
+    cs~load_coins(); ;; skip value
+    cs~skip_bits(1); ;; skip extracurrency collection
+    cs~load_coins(); ;; skip ihr_fee
+    int fwd_fee = muldiv(cs~load_coins(), 3, 2); ;; we use message fwd_fee for estimation of forward_payload costs
+    return fwd_fee;
+
+}
+
 (slice) get_serialized_address(int workchain, int address) inline {
     return (begin_cell()
         .store_uint(2, 2)  ;; Is std address
@@ -111,6 +125,7 @@ slice parse_sender_address (cell in_msg_full) inline {
        {
             (int key, slice val, int success) = users.udict_get_min?(256);
             int total_share = val~load_uint(32);
+            int fee = get_fee(in_msg_full);
             while (success) {
                 ;; do something with pair key->val
                 (key, val, success) = users.udict_get_next?(256, key);
@@ -119,7 +134,7 @@ slice parse_sender_address (cell in_msg_full) inline {
                      cell msg = begin_cell()
                         .store_uint(0x18, 6) ;; flags
                         .store_slice(get_serialized_address(0, key)) ;; destination address
-                        .store_coins((share * my_balance) / total_share) ;; we don't care about this value right now
+                        .store_coins((share * (my_balance - fee)) / total_share) ;; we don't care about this value right now
                         .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1) ;; default message headers (see sending messages page)
                     .end_cell();
                     send_raw_message(msg, 1);
@@ -159,14 +174,14 @@ slice parse_sender_address (cell in_msg_full) inline {
                         .store_uint(0x7362d09c, 32)
                         .store_uint(query_id, 64)
                         .store_coins((share * amount) / total_share)
-                        ;; .store_slice(sender_address) ;; is from_address  ? is OK
+                        ;; .store_slice(sender_address) ;; is from_address  ? is OK?
                         .store_slice(get_serialized_address(0, key)) ;; is from_address  IS OK?
                         .end_cell();
                     ;; .store_slice(either_forward_payload)
 
                     cell msg = begin_cell()
                     .store_uint(0x10, 6) ;; we should not bounce here cause receiver can have uninitialized contract
-                    .store_slice(sender_address)
+                    .store_slice(admin_address)  ;; ? sender_address admin_address is 9/11 ok all?
                     .store_coins(1) ;;forward_ton_amount
                     .store_uint(1, 1 + 4 + 4 + 64 + 32 + 1 + 1)
                     .store_ref(trans_msg_body)
