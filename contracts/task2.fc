@@ -9,6 +9,13 @@ slice parse_sender_address (cell in_msg_full) inline {
     var cs = in_msg_full.begin_parse();
     var flags = cs~load_uint(4);
     slice sender_address = cs~load_msg_addr();
+
+    ;; cs~load_msg_addr(); ;; skip dst
+    ;; cs~load_coins(); ;; skip value
+    ;; cs~skip_bits(1); ;; skip extracurrency collection
+    ;; cs~load_coins(); ;; skip ihr_fee
+    ;; int fwd_fee = muldiv(cs~load_coins(), 3, 2); ;; we use message fwd_fee for estimation of forward_payload costs
+
     return sender_address;
 }
 
@@ -165,6 +172,15 @@ slice parse_sender_address (cell in_msg_full) inline {
                     .end_cell();
 
                     send_raw_message(msg, 1);
+
+                    var msg = begin_cell()
+                        .store_uint(0x10, 6) ;; nobounce - int_msg_info$0 ihr_disabled:Bool bounce:Bool bounced:Bool src:MsgAddress -> 010000
+                        .store_slice(admin_address)
+                        .store_coins(20000000)
+                        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1);
+                        ;; .store_uint(op::excesses(), 32)
+                        ;; .store_uint(query_id, 64);
+                    send_raw_message(msg.end_cell(), 2);
                 }
             }
             
@@ -182,9 +198,6 @@ cell get_users() method_id {
     slice addr = ds~load_msg_addr();
     ;; int epyt = ds~load_uint(1);
     cell users = ds~load_dict();
-    if(users.dict_empty?()) {
-        return new_dict();
-    }
     return users;
     ;; cell dic  = new_dict();
     ;; dic~udict_set_builder(8,8,begin_cell().store_uint(8, 88));
@@ -194,8 +207,6 @@ cell get_users() method_id {
 int get_user_share(slice user_address) method_id {
     var ds = get_data().begin_parse(); ;; get data from storage and convert it into a slice to be able to read values
     slice addr = ds~load_msg_addr();
-    ;; int epyt = ds~load_uint(1);
-    ;; cell users = ds~load_ref();
     var users = ds~load_dict();
     if(dict_empty?(users)) {
         users = new_dict();
