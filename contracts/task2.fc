@@ -159,14 +159,14 @@ slice parse_sender_address (cell in_msg_full) inline {
                         .store_uint(0x7362d09c, 32)
                         .store_uint(query_id, 64)
                         .store_coins((share * amount) / total_share)
-                        ;; .store_slice(sender_address) ;; is from_address 
-                        .store_slice(get_serialized_address(0, key)) ;; is from_address 
+                        ;; .store_slice(sender_address) ;; is from_address  ? is OK
+                        .store_slice(get_serialized_address(0, key)) ;; is from_address  IS OK?
                         .end_cell();
                     ;; .store_slice(either_forward_payload)
 
                     cell msg = begin_cell()
                     .store_uint(0x10, 6) ;; we should not bounce here cause receiver can have uninitialized contract
-                    .store_slice(admin_address)
+                    .store_slice(sender_address)
                     .store_coins(1) ;;forward_ton_amount
                     .store_uint(1, 1 + 4 + 4 + 64 + 32 + 1 + 1)
                     .store_ref(trans_msg_body)
