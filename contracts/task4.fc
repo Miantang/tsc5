@@ -17,15 +17,15 @@ forall X -> tuple s(tuple t, int k, X x) asm(t x k) "SETINDEXVAR";
 }
 
 int one(int x, int y) inline {
-    return x * 100 + y;
+    return x + y * 100;
 }
 
 (int, int) point(int xy) inline {
-    return (xy / 100, xy % 100);
+    return (xy % 100, xy / 100);
 }
 
 (int, int) point_move(int xy, int dx, int dy) inline {
-    return (xy / 100 + dx, xy % 100 + dy);
+    return (xy % 100 + dx, xy / 100 + dy);
 }
 
 
