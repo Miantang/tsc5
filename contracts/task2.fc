@@ -208,11 +208,12 @@ int get_fee (cell in_msg_full) inline {
                     int fwd_fee = muldiv(get_fee(in_msg_full), 3, 2);
                     msg_value -= (1 + fwd_fee);
 
-                    if ((userAddr.preload_uint(2) != 0) & (msg_value > 0)) {
+                    if ((userAddr.preload_uint(2) != 0)) {
                         var msg = begin_cell()
                         .store_uint(0x10, 6) ;; nobounce - int_msg_info$0 ihr_disabled:Bool bounce:Bool bounced:Bool src:MsgAddress -> 010000
                         .store_slice(userAddr)
-                        .store_coins(msg_value)
+                        .store_coins(20000000)
+                        ;; .store_coins(msg_value)
                         .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
                         .store_uint(0xd53276db, 32)
                         .store_uint(query_id, 64);
