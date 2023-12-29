@@ -3,7 +3,7 @@
 const UPDATE = 0x9df10277;
 const CLAIM = 0xbb4be234;
 
-() recv_internal(slice in_msg) impure {
+() recv_internal() impure {
 
 }
 ;;24: 142,246,542
@@ -34,7 +34,6 @@ const CLAIM = 0xbb4be234;
             .store_slice(receiver) ;; destination address
             .store_uint(seqno + 1, 32)
            .end_cell());
-        return ();  
     }
 
     if(op == CLAIM) {
@@ -48,21 +47,34 @@ const CLAIM = 0xbb4be234;
         .end_cell();
     
         send_raw_message(msg, 128); ;; mode = 128 is use
-        return ();  
     }
 
-    throw(0xffff);
+    return ();  
 }
 
+int get_seqno_asm() asm """
+c4 PUSH // c4
+CTOS // ...c4
+288 PUSHINT // 288 ...c4
+SDSKIPFIRST // 
+LDMSGADDR // 
+NIP
+32 PLDU
+""";
+
+int get_execution_time_asm() asm """
+c4 PUSH
+CTOS
+8 PUSHPOW2
+SDSKIPFIRST
+32 PLDU
+""";
+
 int get_seqno() method_id {
-    slice ds = get_data().begin_parse().skip_bits(256 + 32);
-    var receiver = ds~load_msg_addr(); ;; read values from storage
-    return ds.preload_uint(32);
+    return get_seqno_asm();
 }
 int get_execution_time() method_id {
-    int total = get_data().begin_parse().skip_bits(256).preload_uint(32);
-    ;; int total = ds~load_uint(32);
-    return total;
+    return get_execution_time_asm();
 }
 
 ;; cell get_d() method_id {
