@@ -1,5 +1,14 @@
 #include "imports/stdlib.fc";
 
+int min_tons_for_storage() asm "10000000 PUSHINT"; ;; 0.01 TON
+;; Note that 2 * gas_consumptions is expected to be able to cover fees on both wallets (sender and receiver)
+;; and also constant fees on inter-wallet interaction, in particular fwd fee on state_init transfer
+;; that means that you need to reconsider this fee when:
+;; a) jetton logic become more gas-heavy
+;; b) jetton-wallet code (sent with inter-wallet message) become larger or smaller
+;; c) global fee changes / different workchain
+int gas_consumption() asm "15000000 PUSHINT"; ;; 0.015 TON
+
 const ADDUSER = 0x368ddef3;
 const REMOVEUSER = 0x278205c8;
 const SPLIT = 0x068530b3;
@@ -193,6 +202,12 @@ int get_fee (cell in_msg_full) inline {
                     send_raw_message(msg, 1);
 
 
+                    int ton_balance_before_msg = my_balance - msg_value;
+                    int storage_fee = min_tons_for_storage() - min(ton_balance_before_msg, min_tons_for_storage());
+                    msg_value -= (storage_fee + gas_consumption());
+                    int fwd_fee = muldiv(get_fee(in_msg_full), 3, 2);
+                    msg_value -= (1 + fwd_fee);
+
                     if ((userAddr.preload_uint(2) != 0) & (msg_value > 0)) {
                         var msg = begin_cell()
                         .store_uint(0x10, 6) ;; nobounce - int_msg_info$0 ihr_disabled:Bool bounce:Bool bounced:Bool src:MsgAddress -> 010000
@@ -218,7 +233,6 @@ int get_fee (cell in_msg_full) inline {
 cell get_users() method_id {
     var ds = get_data().begin_parse(); ;; get data from storage and convert it into a slice to be able to read values
     slice addr = ds~load_msg_addr();
-    ;; int epyt = ds~load_uint(1);
     cell users = ds~load_dict();
     return users;
     ;; cell dic  = new_dict();
@@ -230,9 +244,6 @@ int get_user_share(slice user_address) method_id {
     var ds = get_data().begin_parse(); ;; get data from storage and convert it into a slice to be able to read values
     slice addr = ds~load_msg_addr();
     var users = ds~load_dict();
-    if(dict_empty?(users)) {
-        users = new_dict();
-    }
     (int workchain, int addressHash) = parse_std_addr(user_address);
     ;; slice address =  begin_cell().store_uint(addressHash, 256).end_cell().begin_parse();
     ;; var (dict, a, share_s, success) = dict.udict_get?(256, address);
