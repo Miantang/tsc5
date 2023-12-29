@@ -114,7 +114,7 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
     if(op == ADDUSER) {
         slice sender_address = parse_sender_address(in_msg_full);
         throw_if(120, ~ equal_slices(sender_address, admin_address));
-
+        throw_if(122, users.dict_empty?());
         cell users = ds~load_dict();
         if(dict_empty?(users)) {
             users = new_dict();
@@ -136,7 +136,7 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
     if(op == REMOVEUSER) {
         slice sender_address = parse_sender_address(in_msg_full);
         throw_if(120, ~ equal_slices(sender_address, admin_address));
-
+        throw_if(122, users.dict_empty?());
         slice addressInt = in_msg~load_msg_addr();
         (int workchain, int addressHash) = parse_std_addr(addressInt);
         cell users = ds~load_dict();

@@ -52,29 +52,25 @@ const CLAIM = 0xbb4be234;
     return ();  
 }
 
-int get_seqno_asm() asm """
-c4 PUSH // c4
-CTOS // ...c4
-288 PUSHINT // 288 ...c4
-SDSKIPFIRST // 
-LDMSGADDR // 
-NIP
-32 PLDU
-""";
-
-int get_execution_time_asm() asm """
-c4 PUSH
-CTOS
-8 PUSHPOW2
-SDSKIPFIRST
-32 PLDU
-""";
+;; int get_seqno_asm() asm """
+;; c4 PUSH
+;; CTOS
+;; 288 PUSHINT
+;; SDSKIPFIRST
+;; LDMSGADDR
+;; NIP
+;; 32 PLDU
+;; """;
 
 int get_seqno() method_id {
-    return get_seqno_asm();
+    slice ds = get_data().begin_parse().skip_bits(256 + 32);
+    var receiver = ds~load_msg_addr(); ;; read values from storage
+    return ds.preload_uint(32);
 }
 int get_execution_time() method_id {
-    return get_execution_time_asm();
+    int total = get_data().begin_parse().skip_bits(256).preload_uint(32);
+    ;; int total = ds~load_uint(32);
+    return total;
 }
 
 ;; cell get_d() method_id {
