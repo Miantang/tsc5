@@ -22,18 +22,20 @@ const CLAIM = 0xbb4be234;
         var mmm = cs;
         var (locked_for, new_seqno) = (cs~load_uint(32), cs~load_uint(32));  ;; get rest values from the message body
         int now_time = now();
+        int new_for_time = now_time + locked_for;
         throw_if(119, new_seqno != seqno + 1);
         throw_unless(120, check_signature(slice_hash(mmm), signature, public_key));
         throw_if(121, locked_for <= 0);
         throw_if(122, execution_time < now_time);
-        throw_if(123, now_time + locked_for < execution_time);
+        throw_if(123, new_for_time < execution_time);
         accept_message();
         set_data(begin_cell()
             .store_uint(public_key, 256)
-            .store_uint(now_time + locked_for, 32)
+            .store_uint(new_for_time, 32)
             .store_slice(receiver) ;; destination address
             .store_uint(seqno + 1, 32)
            .end_cell());
+        return ();  
     }
 
     if(op == CLAIM) {
@@ -47,20 +49,11 @@ const CLAIM = 0xbb4be234;
         .end_cell();
     
         send_raw_message(msg, 128); ;; mode = 128 is use
+        return ();  
     }
 
-    return ();  
+    return ();
 }
-
-;; int get_seqno_asm() asm """
-;; c4 PUSH
-;; CTOS
-;; 288 PUSHINT
-;; SDSKIPFIRST
-;; LDMSGADDR
-;; NIP
-;; 32 PLDU
-;; """;
 
 int get_seqno() method_id {
     slice ds = get_data().begin_parse().skip_bits(256 + 32);
@@ -69,13 +62,5 @@ int get_seqno() method_id {
 }
 int get_execution_time() method_id {
     int total = get_data().begin_parse().skip_bits(256).preload_uint(32);
-    ;; int total = ds~load_uint(32);
     return total;
 }
-
-;; cell get_d() method_id {
-;;     var ds = get_data().begin_parse(); ;; get data from storage and convert it into a slice to be able to read values
-;;     var (public_key, execution_time, receiver) = (ds~load_uint(256), ds~load_uint(32),ds~load_msg_addr()); ;; read values from storage
-;;     int seqno = ds.preload_uint(32);
-;;     return begin_cell().store_uint(seqno, 32).end_cell();
-;; }

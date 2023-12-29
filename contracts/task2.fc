@@ -115,7 +115,7 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
         slice sender_address = parse_sender_address(in_msg_full);
         throw_if(120, ~ equal_slices(sender_address, admin_address));
         cell users = ds~load_dict();
-        throw_if(122, users.dict_empty?());
+        ;; throw_if(122, users.dict_empty?());
         if(dict_empty?(users)) {
             users = new_dict();
         }
@@ -140,7 +140,7 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
         (int workchain, int addressHash) = parse_std_addr(addressInt);
         cell users = ds~load_dict();
          
-        throw_if(122, users.dict_empty?());
+        ;; throw_if(122, users.dict_empty?());
         int success? = users~udict_delete?(256, addressHash);
         throw_unless(121, success?);
          set_data(begin_cell()
@@ -234,24 +234,23 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
 
                     send_raw_message(msg, 1);
 
+                    ;; int ton_balance_before_msg = my_balance - msg_value;
+                    ;; int storage_fee = min_tons_for_storage() - min(ton_balance_before_msg, min_tons_for_storage());
+                    ;; msg_value -= (storage_fee + gas_consumption());
+                    ;; int fwd_fee = muldiv(get_fee(in_msg_full), 3, 2);
+                    ;; msg_value -= (1 + fwd_fee);
 
-                    int ton_balance_before_msg = my_balance - msg_value;
-                    int storage_fee = min_tons_for_storage() - min(ton_balance_before_msg, min_tons_for_storage());
-                    msg_value -= (storage_fee + gas_consumption());
-                    int fwd_fee = muldiv(get_fee(in_msg_full), 3, 2);
-                    msg_value -= (1 + fwd_fee);
-
-                    if ((userAddr.preload_uint(2) != 0)) {
-                        var msg = begin_cell()
-                        .store_uint(0x10, 6) ;; nobounce - int_msg_info$0 ihr_disabled:Bool bounce:Bool bounced:Bool src:MsgAddress -> 010000
-                        .store_slice(userAddr)
-                        .store_coins(20000000)
-                        ;; .store_coins(msg_value)
-                        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
-                        .store_uint(0xd53276db, 32)
-                        .store_uint(query_id, 64);
-                        send_raw_message(msg.end_cell(), 2);
-                    }
+                    ;; if ((userAddr.preload_uint(2) != 0)) {
+                    ;;     var msg = begin_cell()
+                    ;;     .store_uint(0x10, 6) ;; nobounce - int_msg_info$0 ihr_disabled:Bool bounce:Bool bounced:Bool src:MsgAddress -> 010000
+                    ;;     .store_slice(userAddr)
+                    ;;     .store_coins(20000000)
+                    ;;     ;; .store_coins(msg_value)
+                    ;;     .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+                    ;;     .store_uint(0xd53276db, 32)
+                    ;;     .store_uint(query_id, 64);
+                    ;;     send_raw_message(msg.end_cell(), 2);
+                    ;; }
                 }
             }
             
@@ -282,9 +281,6 @@ int get_user_share(slice user_address) method_id {
     ;; slice address =  begin_cell().store_uint(addressHash, 256).end_cell().begin_parse();
     ;; var (dict, a, share_s, success) = dict.udict_get?(256, address);
     (slice share_s, int success) = users.udict_get?(256, addressHash);
-    if(~ success) {
-        return null();
-    }
     int share = share_s~load_uint(32);
     ;; (cell c, int share) = users.udict_get?(256, addressHash);
     return share;
