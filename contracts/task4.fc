@@ -107,12 +107,11 @@ int combine(int stone, int prob, int step, int xy, int endxy) inline {
 }
 
 (cell, int) ~unshiftmin(cell dict) inline {
-    (int cost, slice xy_slice, int success) = dict~udict::delete_get_min(32);
-    if(~ success) {
-        return (dict, 0);
-    }
-    (_, int xy) = xy_slice.load_uint(12);
-    return (dict, xy);
+    (_, slice xy_slice, int success) = dict~udict::delete_get_min(32);
+    ;; if(~ success) {
+    ;;     return (dict, 0);
+    ;; }
+    return (dict, xy_slice~load_uint(12));
 }
 
 ;; S 83  E69 X88  .46  ?63 !33
