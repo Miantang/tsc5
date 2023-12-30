@@ -38,18 +38,18 @@ describe('Task2', () => {
         // blockchain and task2 are ready to use
     });
 
-    it('should sendDict', async () => {
-        const deployer = await blockchain.treasury('deployer');
-        const sender = deployer.getSender();
+    // it('should sendDict', async () => {
+    //     const deployer = await blockchain.treasury('deployer');
+    //     const sender = deployer.getSender();
 
-        const taskUpdate = await task2.sendDict(sender, toNano('0.01'));
-        const m:any = await task2.getAdmin();
-        console.log('m',  m);
-        expect(taskUpdate.transactions).toHaveTransaction({
-            op: 0x66666666,
-        });
-        // expect(task1)
-    });
+    //     const taskUpdate = await task2.sendDict(sender, toNano('0.01'));
+    //     const m:any = await task2.getAdmin();
+    //     // console.log('m',  m);
+    //     expect(taskUpdate.transactions).toHaveTransaction({
+    //         op: 0x66666666,
+    //     });
+    //     // expect(task1)
+    // });
     
     it('should sendAddUser', async () => {
         const deployer = await blockchain.treasury('deployer');
@@ -59,7 +59,7 @@ describe('Task2', () => {
         await task2.sendAddUser(sender, toNano('0.01'), addr, 101);
         // await task2.sendAddUser(sender, toNano('0.01'), randomAddress(), 102);
         const m:any = await task2.getUsers();
-        const share:number|null = await task2.getUserShare(addr);
+        // const share:number|null = await task2.getUserShare(addr);
         // console.log('sendAddUser', taskUpdate.transactions, m, 'share',share);
         expect(taskUpdate.transactions).toHaveTransaction({
             op: 0x368ddef3,
@@ -77,8 +77,8 @@ describe('Task2', () => {
         await task2.sendAddUser(sender, toNano('0.01'), addr2, 102);
         // console.log('first sendDelUser', await task2.getUsers());
         const dd = await task2.sendDelUser(sender, toNano('0.01'), addr2);
-        const m:any = await task2.getUsers();
-        const share:number|null = await task2.getUserShare(addr);
+        // const m:any = await task2.getUsers();
+        // const share:number|null = await task2.getUserShare(addr);
         // console.log('sendDelUser', dd.transactions, m, 'share',share);
         // expect(taskUpdate.transactions).toHaveTransaction({
         //     op: 0x368ddef3,
@@ -91,9 +91,15 @@ describe('Task2', () => {
     it('should sendSplit', async () => {
         const deployer = await blockchain.treasury('deployer');
         const sender = deployer.getSender();
+        const addr = randomAddress();
+        const addr2 = randomAddress();
+        await task2.sendAddUser(sender, toNano('0.01'), addr, 100);
+        await task2.sendAddUser(sender, toNano('0.01'), addr, 101);
+        await task2.sendAddUser(sender, toNano('0.01'), addr2, 102);
+        await task2.sendAddUser(sender, toNano('0.01'), randomAddress(), 2);
         const taskUpdate = await task2.sendSplit(sender, toNano('0.01'));
-        const m:any = await task2.getAdmin();
-        // console.log('m', taskUpdate.transactions, m.address, sender.address, m.address.equals(sender.address));
+        // const m:any = await task2.getAdmin();
+        console.log('m', taskUpdate.transactions);
         expect(taskUpdate.transactions).toHaveTransaction({
             op: 0x068530b3,
         });

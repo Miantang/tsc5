@@ -48,7 +48,7 @@ export class Task2 implements Contract {
                 sendMode: SendMode.PAY_GAS_SEPARATELY,
                 body: beginCell()
                 .storeUint(0x068530b3, 32)
-                .storeUint(0x1414, 64)
+                .storeUint(0x141414, 64)
                 .endCell()
             })
     }
