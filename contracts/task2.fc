@@ -36,9 +36,9 @@ int get_fee (cell in_msg_full) inline {
     cs~load_msg_addr(); ;; skip dst
     cs~load_coins(); ;; skip value
     cs~skip_bits(1); ;; skip extracurrency collection
-    cs~load_coins(); ;; skip ihr_fee
-    int fwd_fee = muldiv(cs~load_coins(), 3, 2); ;; we use message fwd_fee for estimation of forward_payload costs
-    return fwd_fee;
+    int ihr_fee = cs~load_coins(); ;; skip ihr_fee
+    int fwd_fee = cs~load_coins(); ;; muldiv(cs~load_coins(), 3, 2); ;; we use message fwd_fee for estimation of forward_payload costs
+    return fwd_fee + ihr_fee;
 }
 
 cell pack_jetton_wallet_data(int balance, slice owner_address, slice jetton_master_address, cell jetton_wallet_code) inline {
@@ -140,7 +140,7 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
         (int workchain, int addressHash) = parse_std_addr(addressInt);
         cell users = ds~load_dict();
          
-        ;; throw_if(122, users.dict_empty?());
+        throw_if(122, users.dict_empty?());
         int success? = users~udict_delete?(256, addressHash);
         throw_unless(121, success?);
          set_data(begin_cell()
