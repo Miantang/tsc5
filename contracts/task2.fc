@@ -41,6 +41,15 @@ int get_fee (cell in_msg_full) inline {
     return fwd_fee + ihr_fee;
 }
 
+int get_value (cell in_msg_full) inline {
+    var cs = in_msg_full.begin_parse();
+    var flags = cs~load_uint(4);
+     cs~load_msg_addr(); ;;sender_address
+
+    cs~load_msg_addr(); ;; skip dst
+    return cs~load_coins();
+}
+
 cell pack_jetton_wallet_data(int balance, slice owner_address, slice jetton_master_address, cell jetton_wallet_code) inline {
    return  begin_cell()
             .store_coins(balance)
@@ -155,6 +164,12 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
         throw_if(122, users.dict_empty?());
         slice sender_address = parse_sender_address(in_msg_full);
         throw_if(120, ~ equal_slices(sender_address, admin_address));
+
+        var value_to_share = my_balance - get_value(in_msg_full);
+        if (value_to_share <= 0) {
+        return ();
+    }
+
        (int key, slice val, int success) = users.udict_get_min?(256);
         int total_share = val~load_uint(32);
         while (success) {
@@ -167,7 +182,6 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
         }
        {
             (int key, slice val, int success) = users.udict_get_min?(256);
-            int total_share = val~load_uint(32);
             int fee = get_fee(in_msg_full);
             while (success) {
                 ;; do something with pair key->val
@@ -179,7 +193,7 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
                         ;; .store_slice(admin_address) ;; destination address
                         .store_slice(get_serialized_address(0, key)) ;; destination address
                         ;; .store_coins((share * (msg_value - fee)) / total_share)
-                        .store_coins(muldiv(share, my_balance - msg_value, total_share)) 
+                        .store_coins(muldiv(share, msg_value, total_share)) 
                         .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1) ;; default message headers (see sending messages page)
                     .end_cell();
                     send_raw_message(msg, 1);
@@ -213,7 +227,6 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
             slice sender_address = parse_sender_address(in_msg_full);
             ;; slice jetton_address = get_wallet_address(admin_address, begin_cell().end_cell());
             (int key, slice val, int success) = users.udict_get_min?(256);
-            int total_share = val~load_uint(32);
             while (success) {
                 ;; do something with pair key->val
                 (key, val, success) = users.udict_get_next?(256, key);
@@ -255,7 +268,7 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
 
                       var transfer_msg = begin_cell()
                         .store_uint(0x18, 6)
-                        .store_slice(sender_address)
+                        .store_slice(jetton_address)
                         .store_coins(20000000)
                         .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
                         .store_ref(begin_cell().end_cell())
