@@ -241,12 +241,13 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
                         .store_uint(0x0f8a7ea5, 32)
                         .store_uint(query_id, 64)
                         .store_coins(jetton_amount)
-                        .store_slice(admin_address) ;; owner_address
+                        .store_slice(userAddr) ;; owner_address
                         .store_slice(userAddr)  ;;response_address
                         .store_uint(0, 1) ;; custom_payload
                         .store_coins(1) ;; forward_ton_amount
                         .store_uint(0, 1) ;; either_forward_payload
                         .end_cell();
+
                       var msg = begin_cell()
                         .store_uint(0x18, 6)
                         .store_slice(my_address())
@@ -254,8 +255,19 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
                         .store_uint(4 + 2 + 1, 1 + 4 + 4 + 64 + 32 + 1 + 1 + 1);
                         ;; .store_ref(state_init);
                     
-
                     msg = msg.store_ref(msg_body);
+
+;;                      int fwd_count = forward_ton_amount ? 2 : 1;
+;;   throw_unless(709, msg_value >
+;;                      forward_ton_amount +
+;;                      ;; 3 messages: wal1->wal2,  wal2->owner, wal2->response
+;;                      ;; but last one is optional (it is ok if it fails)
+;;                      fwd_count * fwd_fee +
+;;                      (2 * gas_consumption() + min_tons_for_storage()));
+                     ;; universal message send fee calculation may be activated here
+                     ;; by using this instead of fwd_fee
+                     ;; msg_fwd_fee(to_wallet, msg_body, state_init, 15)
+
                     send_raw_message(msg.end_cell(), 64); ;; revert on errors
 
                     ;; int ton_balance_before_msg = my_balance - msg_value;
