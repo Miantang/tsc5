@@ -12,7 +12,7 @@ forall X -> tuple s(tuple t, int k, X x) asm(t x k) "SETINDEXVAR";
 
 (slice, int) u_get?(cell dict, int key_len, int index) asm(index dict key_len) "DICTUGET";
 
-() recv_internal(slice in_msg_body) impure {
+() recv_internal() impure {
 
 }
 
@@ -77,7 +77,6 @@ int combine(int stone, int prob, int step, int xy, int endxy) inline {
         dy = - dx;
     }
     int dis = max(dx, dy); ;; gas 26
-    ;; int dis = max(max(x, endx) - min(x, endx), max(y, endy - min(y, endy))); ;; gas 26 * 5
     return  stone * 100000000 + prob * 1000000 + step * 1000 + dis * 10;
     ;; return  stone * 10000000 + prob * 100000 + step * 100 + dis;
 }

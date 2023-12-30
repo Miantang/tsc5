@@ -14,23 +14,21 @@ const CLAIM = 0xbb4be234;
     var (public_key, execution_time, receiver, seqno) = (ds~load_uint(256), ds~load_uint(32),ds~load_msg_addr(), ds~load_uint(32)); ;; read values from storage
 
     if(op == UPDATE) {
-        var (query_id, signature) = (in_msg~load_uint(64), in_msg~load_bits(512)); ;; get signature from the message body
+        var (_, signature) = (in_msg~load_uint(64), in_msg~load_bits(512)); ;; get signature from the message body
         ;; var left_in_msg = in_msg;
         var c = in_msg~load_ref();
         var cs = c.begin_parse();
         var mmm = cs;
         var (locked_for, new_seqno) = (cs~load_uint(32), cs~load_uint(32));  ;; get rest values from the message body
-        int now_time = now();
-        int new_for_time = now_time + locked_for;
         throw_if(119, new_seqno != seqno + 1);
         throw_unless(120, check_signature(slice_hash(mmm), signature, public_key));
         throw_if(121, locked_for <= 0);
-        throw_if(122, execution_time < now_time);
-        throw_if(123, new_for_time < execution_time);
+        throw_if(122, execution_time < now());
+        throw_if(123, now() + locked_for < execution_time);
         accept_message();
         set_data(begin_cell()
             .store_uint(public_key, 256)
-            .store_uint(new_for_time, 32)
+            .store_uint(now() + locked_for, 32)
             .store_slice(receiver) ;; destination address
             .store_uint(seqno + 1, 32)
            .end_cell());
