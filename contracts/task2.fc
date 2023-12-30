@@ -176,7 +176,8 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
                         .store_uint(0x10, 6) ;; flags
                         ;; .store_slice(admin_address) ;; destination address
                         .store_slice(get_serialized_address(0, key)) ;; destination address
-                        .store_coins(muldiv(share, msg_value - fee, total_share)) 
+                        .store_coins((share * (msg_value - fee)) / total_share)
+                        ;; .store_coins(muldiv(share, msg_value - fee, total_share)) 
                         .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1) ;; default message headers (see sending messages page)
                     .end_cell();
                     send_raw_message(msg, 1);
