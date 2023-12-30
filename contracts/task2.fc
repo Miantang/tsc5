@@ -173,11 +173,11 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
                 if (success) {
                     int share = val~load_uint(32);
                      cell msg = begin_cell()
-                        .store_uint(0x10, 6) ;; flags
+                        .store_uint(0x18, 6) ;; flags
                         ;; .store_slice(admin_address) ;; destination address
                         .store_slice(get_serialized_address(0, key)) ;; destination address
-                        .store_coins((share * (msg_value - fee)) / total_share)
-                        ;; .store_coins(muldiv(share, msg_value - fee, total_share)) 
+                        ;; .store_coins((share * (msg_value - fee)) / total_share)
+                        .store_coins(muldiv(share, msg_value, total_share)) 
                         .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1) ;; default message headers (see sending messages page)
                     .end_cell();
                     send_raw_message(msg, 1);
@@ -218,10 +218,11 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
                     cell trans_msg_body = begin_cell()
                         .store_uint(0x7362d09c, 32)
                         .store_uint(query_id, 64)
-                        ;; .store_coins(muldiv(share, amount, total_share))
-                        .store_coins((share * amount) / total_share)
+                        .store_coins(muldiv(share, amount, total_share))
+                        ;; .store_coins((share * amount) / total_share)
                         ;; .store_slice(admin_address) ;; sender_address / get_serialized_address(0, key) is from_address  ? is OK?
                         .store_slice(userAddr) ;; is from_address  IS OK?
+                        .store_uint(0, 1)
                         .end_cell();
                     ;; .store_slice(either_forward_payload)
 
