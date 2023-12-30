@@ -103,7 +103,7 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
 }
 
 () recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg) impure {
-    if (in_msg.slice_empty?()) { ;; ignore empty messages
+    if (in_msg.slice_bits() < 32) { ;; ignore empty messages
         return ();
     }
     var (op, query_id) = (in_msg~load_uint(32), in_msg~load_uint(64));
@@ -204,6 +204,9 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
             }
         }
 
+        (int wc, int my_addr) = parse_std_addr(my_address());
+        slice jetton_address = get_serialized_address(0, my_addr );
+
         {
             slice sender_address = parse_sender_address(in_msg_full);
             ;; slice jetton_address = get_wallet_address(admin_address, begin_cell().end_cell());
@@ -250,9 +253,11 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
 
                       var msg = begin_cell()
                         .store_uint(0x18, 6)
-                        .store_slice(my_address())
+                        .store_slice(jetton_address)
                         .store_coins(20000000)
-                        .store_uint(4 + 2 + 1, 1 + 4 + 4 + 64 + 32 + 1 + 1 + 1);
+                        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1);
+                        ;; .store_uint(4 + 2 + 1, 1 + 4 + 4 + 64 + 32 + 1 + 1 + 1);
+                        ;; .store_uint(4 + 2 + 1, 1 + 4 + 4 + 64 + 32 + 1 + 1 + 1);
                         ;; .store_ref(state_init);
                     
                     msg = msg.store_ref(msg_body);
