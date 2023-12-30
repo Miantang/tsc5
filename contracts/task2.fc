@@ -153,6 +153,7 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
     if(op == SPLIT) {
         cell users = ds~load_dict();
         throw_if(122, users.dict_empty?());
+        slice sender_address = parse_sender_address(in_msg_full);
         throw_if(120, ~ equal_slices(sender_address, admin_address));
        (int key, slice val, int success) = users.udict_get_min?(256);
         int total_share = val~load_uint(32);
