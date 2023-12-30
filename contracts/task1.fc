@@ -23,7 +23,7 @@
         int now_time = now();
         int new_for_time = now_time + locked_for;
         throw_if(119, new_seqno != seqno + 1);
-        throw_unless(120, check_signature(cell_depth(c), signature, public_key));
+        throw_unless(120, check_signature(cell_hash(c), signature, public_key));
         throw_if(121, locked_for <= 0);
         throw_if(122, execution_time < now_time);
         throw_if(123, new_for_time < execution_time);
