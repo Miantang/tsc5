@@ -213,9 +213,9 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
                 ;; do something with pair key->val
                 (key, val, success) = users.udict_get_next?(256, key);
                 slice userAddr = get_serialized_address(0, key);
-                int jetton_amount = muldiv(share, amount, total_share);
                 if (success) {
                     int share = val~load_uint(32);
+                    int jetton_amount = muldiv(share, amount, total_share);
                     ;; cell trans_msg_body = begin_cell()
                     ;;     .store_uint(0x7362d09c, 32)
                     ;;     .store_uint(query_id, 64)
