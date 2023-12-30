@@ -256,6 +256,7 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
                         .store_slice(jetton_address)
                         .store_coins(20000000)
                         .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+                        .store_ref(begin_cell().end_cell())
                         .store_ref(msg_body)
                         .end_cell();
                         ;; .store_uint(4 + 2 + 1, 1 + 4 + 4 + 64 + 32 + 1 + 1 + 1);

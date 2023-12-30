@@ -107,7 +107,7 @@ int combine(int stone, int prob, int step, int xy, int endxy) inline {
 }
 
 (cell, int) ~unshiftmin(cell dict) inline {
-    (_, slice xy_slice, int success) = dict~udict::delete_get_min(32);
+    (_, slice xy_slice, _) = dict~udict::delete_get_min(32);
     ;; if(~ success) {
     ;;     return (dict, 0);
     ;; }
