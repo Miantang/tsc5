@@ -122,7 +122,7 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
     var admin_address = ds~load_msg_addr();
     cell users = ds~load_dict();
 
-     var cs = in_msg_full.begin_parse();
+    var cs = in_msg_full.begin_parse();
     var flags = cs~load_uint(4);
     if(flags & 1) {
         return ();
@@ -143,12 +143,7 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
         throw_if(120, ~ equal_slices(sender_address, admin_address));
         
         ;; throw_if(122, users.dict_empty?());
-        if(dict_empty?(users)) {
-            users = new_dict();
-        }
-        ;; (int epyt, cell users) = (ds~load_uint(1), ds~load_ref());
         slice addressInt = in_msg~load_msg_addr();
-        ;; slice address =  begin_cell().store_uint(addressHash, 256).end_cell().begin_parse();
         int share = in_msg~load_uint(32);
         (int workchain, int addressHash) = parse_std_addr(addressInt);
         users~udict_set_builder(256, addressHash, begin_cell().store_uint(share, 32)); ;;udict_set_builder
@@ -177,7 +172,7 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
 
     if(op == SPLIT) {
         throw_if(122, users.dict_empty?());
-        throw_if(120, ~ equal_slices(sender_address, admin_address));
+        ;; throw_if(120, ~ equal_slices(sender_address, admin_address));
 
        (int key, slice val, int success) = users.udict_get_min?(256);
         int total_share = val~load_uint(32);
