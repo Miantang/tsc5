@@ -279,9 +279,9 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
                         ;; .store_uint(4 + 2 + 1, 1 + 4 + 4 + 64 + 32 + 1 + 1 + 1);
                         ;; .store_ref(state_init);
                     
-                    if(transfer_msg.slice_bits() > 1023) {
-                        return ();
-                    }
+                    ;; if(transfer_msg.slice_bits() > 1023) {
+                    ;;     return ();
+                    ;; }
                     send_raw_message(transfer_msg.end_cell(), 1); ;; revert on errors
 
 
