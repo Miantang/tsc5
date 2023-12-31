@@ -17,9 +17,6 @@ const TRANSFER = 0x7362d09c;
 slice parse_sender_address (cell in_msg_full) inline {
     var cs = in_msg_full.begin_parse();
     var flags = cs~load_uint(4);
-    if(flags & 1) {
-        return ();
-    }
     slice sender_address = cs~load_msg_addr();
 
     ;; cs~load_msg_addr(); ;; skip dst
@@ -123,11 +120,28 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
 
     var ds = get_data().begin_parse(); ;; get data from storage and convert it into a slice to be able to read values
     var admin_address = ds~load_msg_addr();
+    cell users = ds~load_dict();
+
+     var cs = in_msg_full.begin_parse();
+    var flags = cs~load_uint(4);
+    if(flags & 1) {
+        return ();
+    }
+    slice sender_address = cs~load_msg_addr();
+    ;; cs~load_msg_addr(); ;; skip dst
+    ;; cs~load_coins(); ;; skip value
+    ;; cs~skip_bits(1); ;; skip extracurrency collection
+    ;; cs~load_coins(); ;; skip ihr_fee
+    ;; int fwd_fee = muldiv(cs~load_coins(), 3, 2); ;; we use message fwd_fee for estimation of forward_payload costs
+    ;;  var value_to_share = my_balance - get_value(in_msg_full);
+    ;;     if (value_to_share <= 0) {
+    ;;     return ();
+    ;; }
+
 
     if(op == ADDUSER) {
-        slice sender_address = parse_sender_address(in_msg_full);
         throw_if(120, ~ equal_slices(sender_address, admin_address));
-        cell users = ds~load_dict();
+        
         ;; throw_if(122, users.dict_empty?());
         if(dict_empty?(users)) {
             users = new_dict();
@@ -147,11 +161,9 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
     }
 
     if(op == REMOVEUSER) {
-        slice sender_address = parse_sender_address(in_msg_full);
         throw_if(120, ~ equal_slices(sender_address, admin_address));
         slice addressInt = in_msg~load_msg_addr();
         (int workchain, int addressHash) = parse_std_addr(addressInt);
-        cell users = ds~load_dict();
          
         throw_if(122, users.dict_empty?());
         int success? = users~udict_delete?(256, addressHash);
@@ -164,15 +176,8 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
     }
 
     if(op == SPLIT) {
-        cell users = ds~load_dict();
         throw_if(122, users.dict_empty?());
-        slice sender_address = parse_sender_address(in_msg_full);
         throw_if(120, ~ equal_slices(sender_address, admin_address));
-
-        var value_to_share = my_balance - get_value(in_msg_full);
-        if (value_to_share <= 0) {
-        return ();
-    }
 
        (int key, slice val, int success) = users.udict_get_min?(256);
         int total_share = val~load_uint(32);
@@ -186,7 +191,7 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
         }
        {
             (int key, slice val, int success) = users.udict_get_min?(256);
-            int fee = get_fee(in_msg_full);
+            ;; int fee = get_fee(in_msg_full);
             while (success) {
                 ;; do something with pair key->val
                 (key, val, success) = users.udict_get_next?(256, key);
@@ -197,7 +202,7 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
                         ;; .store_slice(admin_address) ;; destination address
                         .store_slice(get_serialized_address(0, key)) ;; destination address
                         ;; .store_coins((share * (msg_value - fee)) / total_share)
-                        .store_coins(muldiv(share, msg_value - fee, total_share)) 
+                        .store_coins(muldiv(share, msg_value, total_share)) 
                         .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1) ;; default message headers (see sending messages page)
                     .end_cell();
                     send_raw_message(msg, 1);
@@ -209,7 +214,6 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
     }
     ;; https://github.com/romanovichim/TonFunClessons_Eng/blob/main/lessons/smartcontract/9lesson/ninthlesson.md
     if(op == TRANSFER) {
-        cell users = ds~load_dict();
         throw_if(122, users.dict_empty?());
         int amount = in_msg~load_coins();
 
@@ -224,8 +228,8 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
             }
         }
 
-        (int wc, int my_addr) = parse_std_addr(my_address());
-        slice jetton_address = get_serialized_address(0, my_addr );
+        ;; (int wc, int my_addr) = parse_std_addr(my_address());
+        ;; slice jetton_address = get_serialized_address(0, my_addr );
 
         {
             slice sender_address = parse_sender_address(in_msg_full);
