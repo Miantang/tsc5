@@ -17,6 +17,9 @@ const TRANSFER = 0x7362d09c;
 slice parse_sender_address (cell in_msg_full) inline {
     var cs = in_msg_full.begin_parse();
     var flags = cs~load_uint(4);
+    if(flags & 1) {
+        return ();
+    }
     slice sender_address = cs~load_msg_addr();
 
     ;; cs~load_msg_addr(); ;; skip dst
@@ -44,6 +47,7 @@ int get_fee (cell in_msg_full) inline {
 int get_value (cell in_msg_full) inline {
     var cs = in_msg_full.begin_parse();
     var flags = cs~load_uint(4);
+    
      cs~load_msg_addr(); ;;sender_address
 
     cs~load_msg_addr(); ;; skip dst
@@ -267,7 +271,7 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
 
                       var transfer_msg = begin_cell()
                         .store_uint(0x18, 6)
-                        .store_slice(my_address())
+                        .store_slice(sender_address)
                         .store_coins(20000000)
                         .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
                         ;; .store_ref(begin_cell().end_cell())
