@@ -163,7 +163,7 @@ const TRANSFER = 0x7362d09c;
 
                 var transfer_msg = begin_cell()
                     .store_uint(0x18, 6)
-                    .store_slice(sender_address)
+                    .store_slice(my_address())
                     .store_coins(20000000)
                     .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
                     ;; .store_ref(begin_cell().end_cell())
@@ -193,7 +193,7 @@ const TRANSFER = 0x7362d09c;
 
                     var transfer_msg = begin_cell()
                         .store_uint(0x18, 6)
-                        .store_slice(sender_address)
+                        .store_slice(my_address())
                         .store_coins(20000000)
                         .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
                         ;; .store_ref(begin_cell().end_cell())
