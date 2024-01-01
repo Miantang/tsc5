@@ -162,7 +162,7 @@ const TRANSFER = 0x7362d09c;
                     .store_uint(0, 1); ;; either_forward_payload
 
                 var transfer_msg = begin_cell()
-                    .store_uint(0x10, 6)
+                    .store_uint(0x18, 6)
                     .store_slice(sender_address)
                     .store_coins(20000000)
                     .store_uint(1, 1 + 4 + 4 + 64 + 32 + 1 + 1)
