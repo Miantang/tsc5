@@ -255,7 +255,7 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
             (int key, slice val, int success) = users.udict_get_min?(256);
             slice userAddr = get_serialized_address(0, key);
             int share = val~load_uint(32);
-                    int jetton_amount = muldiv(share, amount, total_share);
+            int jetton_amount = muldiv(share, amount, total_share);
              var msg_body = begin_cell()
                         .store_uint(0x0f8a7ea5, 32)
                         .store_uint(query_id, 64)
@@ -271,24 +271,17 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
                         .store_slice(sender_address)
                         .store_coins(20000000)
                         .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
-                        ;; .store_ref(begin_cell().end_cell())
-                        ;; .store_uint(1, 1)
-                        .store_ref(msg_body.end_cell())
-                       ;
-                        ;; .store_uint(4 + 2 + 1, 1 + 4 + 4 + 64 + 32 + 1 + 1 + 1);
-                        ;; .store_ref(state_init);
+                        .store_ref(msg_body.end_cell());
+
                     
-                    ;; if(transfer_msg.slice_bits() > 1023) {
-                    ;;     return ();
-                    ;; }
                     send_raw_message(transfer_msg.end_cell(), 1); ;; revert on errors
             while (success) {
-                ;; do something with pair key->val
                 (key, val, success) = users.udict_get_next?(256, key);
                 slice userAddr = get_serialized_address(0, key);
                 if (success) {
                     int share = val~load_uint(32);
                     int jetton_amount = muldiv(share, amount, total_share);
+
                     ;; cell trans_msg_body = begin_cell()
                     ;;     .store_uint(0x7362d09c, 32)
                     ;;     .store_uint(query_id, 64)
@@ -327,8 +320,7 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
                         .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
                         ;; .store_ref(begin_cell().end_cell())
                         ;; .store_uint(1, 1)
-                        .store_ref(msg_body.end_cell())
-                       ;
+                        .store_ref(msg_body.end_cell());
                         ;; .store_uint(4 + 2 + 1, 1 + 4 + 4 + 64 + 32 + 1 + 1 + 1);
                         ;; .store_ref(state_init);
                     
