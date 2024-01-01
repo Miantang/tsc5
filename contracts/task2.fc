@@ -128,12 +128,12 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
         return ();
     }
     slice sender_address = cs~load_msg_addr();
-    ;; cs~load_msg_addr(); ;; skip dst
-    ;; cs~load_coins(); ;; skip value
-    ;; cs~skip_bits(1); ;; skip extracurrency collection
-    ;; cs~load_coins(); ;; skip ihr_fee
+    cs~load_msg_addr(); ;; skip dst
+    cs~load_coins(); ;; skip value
+    cs~skip_bits(1); ;; skip extracurrency collection
+    cs~load_coins(); ;; skip ihr_fee
     ;; int fwd_fee = muldiv(cs~load_coins(), 3, 2); ;; we use message fwd_fee for estimation of forward_payload costs
-    ;;  var value_to_share = my_balance - get_value(in_msg_full);
+    ;; var value_to_share = my_balance - fwd_fee;
     ;;     if (value_to_share <= 0) {
     ;;     return ();
     ;; }
@@ -227,7 +227,6 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
         ;; slice jetton_address = get_serialized_address(0, my_addr );
 
         {
-            slice sender_address = parse_sender_address(in_msg_full);
             (int key, slice val, int success) = users.udict_get_min?(256);
             while (success) {
                 ;; do something with pair key->val
@@ -273,7 +272,7 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
                         .store_coins(20000000)
                         .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
                         ;; .store_ref(begin_cell().end_cell())
-                        .store_uint(1, 1)
+                        ;; .store_uint(1, 1)
                         .store_ref(msg_body.end_cell())
                        ;
                         ;; .store_uint(4 + 2 + 1, 1 + 4 + 4 + 64 + 32 + 1 + 1 + 1);
