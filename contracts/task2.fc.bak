@@ -1,0 +1,389 @@
+#include "imports/stdlib.fc";
+
+int min_tons_for_storage() asm "10000000 PUSHINT"; ;; 0.01 TON
+;; Note that 2 * gas_consumptions is expected to be able to cover fees on both wallets (sender and receiver)
+;; and also constant fees on inter-wallet interaction, in particular fwd fee on state_init transfer
+;; that means that you need to reconsider this fee when:
+;; a) jetton logic become more gas-heavy
+;; b) jetton-wallet code (sent with inter-wallet message) become larger or smaller
+;; c) global fee changes / different workchain
+int gas_consumption() asm "15000000 PUSHINT"; ;; 0.015 TON
+
+const ADDUSER = 0x368ddef3;
+const REMOVEUSER = 0x278205c8;
+const SPLIT = 0x068530b3;
+const TRANSFER = 0x7362d09c;
+
+slice parse_sender_address (cell in_msg_full) inline {
+    var cs = in_msg_full.begin_parse();
+    var flags = cs~load_uint(4);
+    slice sender_address = cs~load_msg_addr();
+
+    ;; cs~load_msg_addr(); ;; skip dst
+    ;; cs~load_coins(); ;; skip value
+    ;; cs~skip_bits(1); ;; skip extracurrency collection
+    ;; cs~load_coins(); ;; skip ihr_fee
+    ;; int fwd_fee = muldiv(cs~load_coins(), 3, 2); ;; we use message fwd_fee for estimation of forward_payload costs
+
+    return sender_address;
+}
+
+int get_fee (cell in_msg_full) inline {
+    var cs = in_msg_full.begin_parse();
+    var flags = cs~load_uint(4);
+     cs~load_msg_addr(); ;;sender_address
+
+    cs~load_msg_addr(); ;; skip dst
+    cs~load_coins(); ;; skip value
+    cs~skip_bits(1); ;; skip extracurrency collection
+    int ihr_fee = cs~load_coins(); ;; skip ihr_fee
+    int fwd_fee = cs~load_coins(); ;; muldiv(cs~load_coins(), 3, 2); ;; we use message fwd_fee for estimation of forward_payload costs
+    return fwd_fee + ihr_fee;
+}
+
+int get_value (cell in_msg_full) inline {
+    var cs = in_msg_full.begin_parse();
+    var flags = cs~load_uint(4);
+    
+     cs~load_msg_addr(); ;;sender_address
+
+    cs~load_msg_addr(); ;; skip dst
+    return cs~load_coins();
+}
+
+cell pack_jetton_wallet_data(int balance, slice owner_address, slice jetton_master_address, cell jetton_wallet_code) inline {
+   return  begin_cell()
+            .store_coins(balance)
+            .store_slice(owner_address)
+            .store_slice(jetton_master_address)
+            .store_ref(jetton_wallet_code)
+           .end_cell();
+}
+
+cell calculate_jetton_wallet_state_init(slice owner_address, slice jetton_master_address, cell jetton_wallet_code) inline {
+  return begin_cell()
+          .store_uint(0, 2)
+          .store_dict(jetton_wallet_code)
+          .store_dict(pack_jetton_wallet_data(0, owner_address, jetton_master_address, jetton_wallet_code))
+          .store_uint(0, 1)
+         .end_cell();
+}
+
+slice calculate_jetton_wallet_address(cell state_init) inline {
+  return begin_cell().store_uint(4, 3)
+                     .store_int(0, 8)
+                     .store_uint(cell_hash(state_init), 256)
+                     .end_cell()
+                     .begin_parse();
+}
+
+slice calculate_user_jetton_wallet_address(slice owner_address, slice jetton_master_address, cell jetton_wallet_code) inline {
+  return calculate_jetton_wallet_address(calculate_jetton_wallet_state_init(owner_address, jetton_master_address, jetton_wallet_code));
+}
+
+slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id {
+    return calculate_user_jetton_wallet_address(owner_address, my_address(), jetton_wallet_code);
+}
+
+(slice) get_serialized_address(int workchain, int address) inline {
+    return (begin_cell()
+        .store_uint(2, 2)  ;; Is std address
+        .store_uint(0, 1)  ;; Non-unicast
+        .store_uint(workchain, 8)  ;; Basic workchain
+        .store_uint(address, 256) ;; Address hash
+    ).end_cell().begin_parse();
+}
+
+() messages::send_empty(int amount, slice to, int mode) impure inline_ref {
+    cell msg = begin_cell()
+        .store_uint(0x18, 6)
+        .store_slice(to)
+        .store_coins(amount)
+        .store_uint(0, 107)
+    .end_cell();
+    send_raw_message(msg, mode);
+}
+
+(int) utils::to_ton(int amount) inline {
+    return amount * 1000000000;
+}
+
+(int) utils::from_ton(int amount) inline {
+    return amount / 1000000000;
+}
+
+() recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg) impure {
+    if (in_msg.slice_bits() < 32) { ;; ignore empty messages
+        return ();
+    }
+    var (op, query_id) = (in_msg~load_uint(32), in_msg~load_uint(64));
+
+    var ds = get_data().begin_parse(); ;; get data from storage and convert it into a slice to be able to read values
+    var admin_address = ds~load_msg_addr();
+    cell users = ds~load_dict();
+
+    var cs = in_msg_full.begin_parse();
+    var flags = cs~load_uint(4);
+    ;; if(flags & 1) {
+    ;;     return ();
+    ;; }
+    slice sender_address = cs~load_msg_addr();
+    cs~load_msg_addr(); ;; skip dst
+    cs~load_coins(); ;; skip value
+    cs~skip_bits(1); ;; skip extracurrency collection
+    cs~load_coins(); ;; skip ihr_fee
+    ;; int fwd_fee = muldiv(cs~load_coins(), 3, 2); ;; we use message fwd_fee for estimation of forward_payload costs
+    ;; var value_to_share = my_balance - fwd_fee;
+    ;;     if (value_to_share <= 0) {
+    ;;     return ();
+    ;; }
+
+
+    if(op == ADDUSER) {
+        throw_if(120, ~ equal_slices(sender_address, admin_address));
+        
+        ;; throw_if(122, users.dict_empty?());
+        slice addressInt = in_msg~load_msg_addr();
+        int share = in_msg~load_uint(32);
+        (int workchain, int addressHash) = parse_std_addr(addressInt);
+        users~udict_set_builder(256, addressHash, begin_cell().store_uint(share, 32)); ;;udict_set_builder
+
+        set_data(begin_cell()
+            .store_slice(admin_address) ;; destination address
+            .store_dict(users)
+           .end_cell());
+        return ();
+    }
+
+    if(op == REMOVEUSER) {
+        throw_if(120, ~ equal_slices(sender_address, admin_address));
+        slice addressInt = in_msg~load_msg_addr();
+        (int workchain, int addressHash) = parse_std_addr(addressInt);
+         
+        throw_if(122, users.dict_empty?());
+        int success? = users~udict_delete?(256, addressHash);
+        throw_unless(121, success?);
+         set_data(begin_cell()
+            .store_slice(admin_address) ;; destination address
+            .store_dict(users)
+           .end_cell());
+        return ();
+    }
+
+    if(op == SPLIT) {
+        throw_if(122, users.dict_empty?());
+        ;; throw_if(120, ~ equal_slices(sender_address, admin_address));
+
+        ;;;;;;;;
+        ;; cell temp = new_dict();
+
+        ;;;;;;;;
+
+       (int key, slice val, int success) = users.udict_get_min?(256);
+        int total_share = val~load_uint(32);
+        while (success) {
+            ;; do something with pair key->val
+            (key, val, success) = users.udict_get_next?(256, key);
+            if (success) {
+                int share = val~load_uint(32);
+                total_share += share;
+            }
+        }
+        ;; temp.udict_add_builder?(16,total_share,begin_cell().store_uint(total_share, 16));
+       {
+            (int key, slice val, int success) = users.udict_get_min?(256);
+            ;; int fee = get_fee(in_msg_full);
+            int share = val~load_uint(32);
+                    int ton_to_send = muldiv(share, msg_value, total_share);
+                     cell msg = begin_cell()
+                        .store_uint(0x18, 6) ;; flags
+                        ;; .store_slice(admin_address) ;; destination address
+                        .store_slice(get_serialized_address(0, key)) ;; destination address
+                        ;; .store_coins((share * (msg_value - fee)) / total_share)
+                        .store_coins(ton_to_send) 
+                        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1) ;; default message headers (see sending messages page)
+                    .end_cell();
+                    send_raw_message(msg, 1);
+
+            while (success) {
+                ;; do something with pair key->val
+                (key, slice share_s, success) = users.udict_get_next?(256, key);
+                if (success) {
+                    int share = share_s~load_uint(32);
+                    int ton_to_send = muldiv(share, msg_value, total_share);
+                     cell msg = begin_cell()
+                        .store_uint(0x18, 6) ;; flags
+                        ;; .store_slice(admin_address) ;; destination address
+                        .store_slice(get_serialized_address(0, key)) ;; destination address
+                        ;; .store_coins((share * (msg_value - fee)) / total_share)
+                        .store_coins(ton_to_send) 
+                        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1) ;; default message headers (see sending messages page)
+                    .end_cell();
+                    send_raw_message(msg, 1);
+                }
+            }
+       }
+       ;; debug
+       set_data(begin_cell()
+            .store_slice(admin_address) ;; destination address
+            .store_dict(users) 
+           .end_cell());
+           ;; debug
+
+        return ();
+    }
+    ;; https://github.com/romanovichim/TonFunClessons_Eng/blob/main/lessons/smartcontract/9lesson/ninthlesson.md
+    if(op == TRANSFER) {
+        throw_if(122, users.dict_empty?());
+        int amount = in_msg~load_coins();
+
+        (int key, slice val, int success) = users.udict_get_min?(256);
+        int total_share = val~load_uint(32);
+        while (success) {
+            ;; do something with pair key->val
+            (key, val, success) = users.udict_get_next?(256, key);
+            if (success) {
+                int share = val~load_uint(32);
+                total_share += share;
+            }
+        }
+
+        ;; (int wc, int my_addr) = parse_std_addr(my_address());
+        ;; slice jetton_address = get_serialized_address(0, my_addr );
+
+        {
+            (int key, slice val, int success) = users.udict_get_min?(256);
+            while (success) {
+                ;; do something with pair key->val
+                (key, val, success) = users.udict_get_next?(256, key);
+                slice userAddr = get_serialized_address(0, key);
+                if (success) {
+                    int share = val~load_uint(32);
+                    int jetton_amount = muldiv(share, amount, total_share);
+                    ;; cell trans_msg_body = begin_cell()
+                    ;;     .store_uint(0x7362d09c, 32)
+                    ;;     .store_uint(query_id, 64)
+                    ;;     .store_coins(muldiv(share, amount, total_share))
+                    ;;     ;; .store_coins((share * amount) / total_share)
+                    ;;     ;; .store_slice(admin_address) ;; sender_address / get_serialized_address(0, key) is from_address  ? is OK?
+                    ;;     .store_slice(userAddr) ;; is from_address  IS OK?
+                    ;;     .store_uint(0, 1)
+                    ;;     .end_cell();
+                    ;; ;; .store_slice(either_forward_payload)
+
+                    ;; cell msg = begin_cell()
+                    ;; .store_uint(0x10, 6) ;; we should not bounce here cause receiver can have uninitialized contract
+                    ;; .store_slice(my_address())  ;; ? sender_address admin_address is 9/11 ok all?
+                    ;; .store_coins(1) ;;forward_ton_amount
+                    ;; .store_uint(1, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+                    ;; .store_ref(trans_msg_body)
+                    ;; .end_cell();
+
+                    ;; send_raw_message(msg, 1);
+
+                        var msg_body = begin_cell()
+                        .store_uint(0x0f8a7ea5, 32)
+                        .store_uint(query_id, 64)
+                        .store_coins(jetton_amount)
+                        .store_slice(userAddr) ;; owner_address
+                        .store_slice(userAddr)  ;;response_address
+                        .store_uint(0, 1) ;; custom_payload
+                        .store_coins(1) ;; forward_ton_amount
+                        .store_uint(0, 1); ;; either_forward_payload
+
+                      var transfer_msg = begin_cell()
+                        .store_uint(0x18, 6)
+                        .store_slice(sender_address)
+                        .store_coins(20000000)
+                        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+                        ;; .store_ref(begin_cell().end_cell())
+                        ;; .store_uint(1, 1)
+                        .store_ref(msg_body.end_cell())
+                       ;
+                        ;; .store_uint(4 + 2 + 1, 1 + 4 + 4 + 64 + 32 + 1 + 1 + 1);
+                        ;; .store_ref(state_init);
+                    
+                    ;; if(transfer_msg.slice_bits() > 1023) {
+                    ;;     return ();
+                    ;; }
+                    send_raw_message(transfer_msg.end_cell(), 1); ;; revert on errors
+
+
+;;                      int fwd_count = forward_ton_amount ? 2 : 1;
+;;   throw_unless(709, msg_value >
+;;                      forward_ton_amount +
+;;                      ;; 3 messages: wal1->wal2,  wal2->owner, wal2->response
+;;                      ;; but last one is optional (it is ok if it fails)
+;;                      fwd_count * fwd_fee +
+;;                      (2 * gas_consumption() + min_tons_for_storage()));
+                     ;; universal message send fee calculation may be activated here
+                     ;; by using this instead of fwd_fee
+                     ;; msg_fwd_fee(to_wallet, msg_body, state_init, 15)
+
+
+                    ;; int ton_balance_before_msg = my_balance - msg_value;
+                    ;; int storage_fee = min_tons_for_storage() - min(ton_balance_before_msg, min_tons_for_storage());
+                    ;; msg_value -= (storage_fee + gas_consumption());
+                    ;; int fwd_fee = muldiv(get_fee(in_msg_full), 3, 2);
+                    ;; msg_value -= (1 + fwd_fee);
+
+                    ;; if ((userAddr.preload_uint(2) != 0)) {
+                    ;;     var msg = begin_cell()
+                    ;;     .store_uint(0x10, 6) ;; nobounce - int_msg_info$0 ihr_disabled:Bool bounce:Bool bounced:Bool src:MsgAddress -> 010000
+                    ;;     .store_slice(userAddr)
+                    ;;     .store_coins(20000000)
+                    ;;     ;; .store_coins(msg_value)
+                    ;;     .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+                    ;;     .store_uint(0xd53276db, 32)
+                    ;;     .store_uint(query_id, 64);
+                    ;;     send_raw_message(msg.end_cell(), 2);
+                    ;; }
+                }
+            }
+            
+        }
+
+        return ();
+    }
+
+   return ();
+}
+
+
+cell get_users() method_id {
+    var ds = get_data().begin_parse(); ;; get data from storage and convert it into a slice to be able to read values
+    slice addr = ds~load_msg_addr();
+    ;; int epyt = ds~load_uint(1);
+    return ds~load_dict();
+    ;; return ds.preload_dict();
+}
+
+int get_user_share(slice user_address) method_id {
+    var ds = get_data().begin_parse(); ;; get data from storage and convert it into a slice to be able to read values
+    slice addr = ds~load_msg_addr();
+    var users = ds~load_dict();
+    (int workchain, int addressHash) = parse_std_addr(user_address);
+    (slice share_s, int success) = users.udict_get?(256, addressHash);
+    return share_s~load_uint(32);
+    ;; return 1;
+}
+
+;; cell get_int() method_id {
+;;     var ds = get_data().begin_parse(); ;; get data from storage and convert it into a slice to be able to read values
+;;     slice addr = ds~load_msg_addr();
+;;     ds~load_dict();
+;;     var d = ds~load_ref();
+;;     var cs = d.begin_parse();
+;;     return cs~load_dict();
+;;     ;; return ds~load_dict();
+;;     ;; return ds.preload_dict();
+;; }
+
+(slice, slice, int, int, int) get_admin() method_id {
+     var ds = get_data().begin_parse(); ;; get data from storage and convert it into a slice to be able to read values
+    var admin_address = ds~load_msg_addr();
+   
+    (int wc, int addr) = parse_std_addr(admin_address);
+    slice parsed =  get_serialized_address(wc, addr);
+    return (admin_address, parsed, wc, addr, equal_slices(admin_address,parsed));
+}
