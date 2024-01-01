@@ -124,9 +124,9 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
 
     var cs = in_msg_full.begin_parse();
     var flags = cs~load_uint(4);
-    if(flags & 1) {
-        return ();
-    }
+    ;; if(flags & 1) {
+    ;;     return ();
+    ;; }
     slice sender_address = cs~load_msg_addr();
     cs~load_msg_addr(); ;; skip dst
     cs~load_coins(); ;; skip value
@@ -174,6 +174,11 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
         throw_if(122, users.dict_empty?());
         ;; throw_if(120, ~ equal_slices(sender_address, admin_address));
 
+        ;;;;;;;;
+        ;; cell temp = new_dict();
+
+        ;;;;;;;;
+
        (int key, slice val, int success) = users.udict_get_min?(256);
         int total_share = val~load_uint(32);
         while (success) {
@@ -184,26 +189,46 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
                 total_share += share;
             }
         }
-    ;;    {
-    ;;         (int key, slice val, int success) = users.udict_get_min?(256);
-    ;;         ;; int fee = get_fee(in_msg_full);
-    ;;         while (success) {
-    ;;             ;; do something with pair key->val
-    ;;             (key, slice share_s, success) = users.udict_get_next?(256, key);
-    ;;             if (success) {
-    ;;                 int share = share_s~load_uint(32);
-    ;;                  cell msg = begin_cell()
-    ;;                     .store_uint(0x18, 6) ;; flags
-    ;;                     ;; .store_slice(admin_address) ;; destination address
-    ;;                     .store_slice(get_serialized_address(0, key)) ;; destination address
-    ;;                     ;; .store_coins((share * (msg_value - fee)) / total_share)
-    ;;                     .store_coins(muldiv(share, msg_value, total_share)) 
-    ;;                     .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1) ;; default message headers (see sending messages page)
-    ;;                 .end_cell();
-    ;;                 send_raw_message(msg, 1);
-    ;;             }
-    ;;         }
-    ;;    }
+        ;; temp.udict_add_builder?(16,total_share,begin_cell().store_uint(total_share, 16));
+       {
+            (int key, slice val, int success) = users.udict_get_min?(256);
+            ;; int fee = get_fee(in_msg_full);
+            int share = val~load_uint(32);
+                    int ton_to_send = muldiv(share, msg_value, total_share);
+                     cell msg = begin_cell()
+                        .store_uint(0x18, 6) ;; flags
+                        ;; .store_slice(admin_address) ;; destination address
+                        .store_slice(get_serialized_address(0, key)) ;; destination address
+                        ;; .store_coins((share * (msg_value - fee)) / total_share)
+                        .store_coins(ton_to_send) 
+                        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1) ;; default message headers (see sending messages page)
+                    .end_cell();
+                    send_raw_message(msg, 1);
+
+            while (success) {
+                ;; do something with pair key->val
+                (key, slice share_s, success) = users.udict_get_next?(256, key);
+                if (success) {
+                    int share = share_s~load_uint(32);
+                    int ton_to_send = muldiv(share, msg_value, total_share);
+                     cell msg = begin_cell()
+                        .store_uint(0x18, 6) ;; flags
+                        ;; .store_slice(admin_address) ;; destination address
+                        .store_slice(get_serialized_address(0, key)) ;; destination address
+                        ;; .store_coins((share * (msg_value - fee)) / total_share)
+                        .store_coins(ton_to_send) 
+                        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1) ;; default message headers (see sending messages page)
+                    .end_cell();
+                    send_raw_message(msg, 1);
+                }
+            }
+       }
+       ;; debug
+       set_data(begin_cell()
+            .store_slice(admin_address) ;; destination address
+            .store_dict(users) 
+           .end_cell());
+           ;; debug
 
         return ();
     }
@@ -328,11 +353,9 @@ slice get_wallet_address(slice owner_address, cell jetton_wallet_code) method_id
 cell get_users() method_id {
     var ds = get_data().begin_parse(); ;; get data from storage and convert it into a slice to be able to read values
     slice addr = ds~load_msg_addr();
-    cell users = ds~load_dict();
-    return users;
-    ;; cell dic  = new_dict();
-    ;; dic~udict_set_builder(8,8,begin_cell().store_uint(8, 88));
-    ;; return dic;
+    ;; int epyt = ds~load_uint(1);
+    return ds~load_dict();
+    ;; return ds.preload_dict();
 }
 
 int get_user_share(slice user_address) method_id {
@@ -340,13 +363,21 @@ int get_user_share(slice user_address) method_id {
     slice addr = ds~load_msg_addr();
     var users = ds~load_dict();
     (int workchain, int addressHash) = parse_std_addr(user_address);
-    ;; slice address =  begin_cell().store_uint(addressHash, 256).end_cell().begin_parse();
-    ;; var (dict, a, share_s, success) = dict.udict_get?(256, address);
     (slice share_s, int success) = users.udict_get?(256, addressHash);
-    int share = share_s~load_uint(32);
-    ;; (cell c, int share) = users.udict_get?(256, addressHash);
-    return share;
+    return share_s~load_uint(32);
+    ;; return 1;
 }
+
+;; cell get_int() method_id {
+;;     var ds = get_data().begin_parse(); ;; get data from storage and convert it into a slice to be able to read values
+;;     slice addr = ds~load_msg_addr();
+;;     ds~load_dict();
+;;     var d = ds~load_ref();
+;;     var cs = d.begin_parse();
+;;     return cs~load_dict();
+;;     ;; return ds~load_dict();
+;;     ;; return ds.preload_dict();
+;; }
 
 (slice, slice, int, int, int) get_admin() method_id {
      var ds = get_data().begin_parse(); ;; get data from storage and convert it into a slice to be able to read values

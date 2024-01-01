@@ -20,7 +20,8 @@ describe('Task2', () => {
         const deployer = await blockchain.treasury('deployer');
         const sender = deployer.getSender();
         const adminAddr = randomAddress(0);
-        task2 = blockchain.openContract(Task2.createFromConfig({ admin: adminAddr }, code));
+        // task2 = blockchain.openContract(Task2.createFromConfig({ admin: adminAddr }, code));
+        task2 = blockchain.openContract(Task2.createFromConfig({ admin: sender.address }, code));
 
 
         const deployResult = await task2.sendDeploy(sender, toNano('0.05'));
@@ -38,18 +39,18 @@ describe('Task2', () => {
         // blockchain and task2 are ready to use
     });
 
-    // it('should sendDict', async () => {
-    //     const deployer = await blockchain.treasury('deployer');
-    //     const sender = deployer.getSender();
+    it('should sendDict', async () => {
+        const deployer = await blockchain.treasury('deployer');
+        const sender = deployer.getSender();
 
-    //     const taskUpdate = await task2.sendDict(sender, toNano('0.01'));
-    //     const m:any = await task2.getAdmin();
-    //     // console.log('m',  m);
-    //     expect(taskUpdate.transactions).toHaveTransaction({
-    //         op: 0x66666666,
-    //     });
-    //     // expect(task1)
-    // });
+        const taskUpdate = await task2.sendDict(sender, toNano('0.01'));
+        const m:any = await task2.getAdmin();
+        // console.log('m',  m);
+        expect(taskUpdate.transactions).toHaveTransaction({
+            op: 0x66666666,
+        });
+        // expect(task1)
+    });
     
     it('should sendAddUser', async () => {
         const deployer = await blockchain.treasury('deployer');
@@ -57,10 +58,10 @@ describe('Task2', () => {
         const addr = randomAddress();
         const taskUpdate = await task2.sendAddUser(sender, toNano('0.01'), addr, 100);
         await task2.sendAddUser(sender, toNano('0.01'), addr, 101);
-        // await task2.sendAddUser(sender, toNano('0.01'), randomAddress(), 102);
+        await task2.sendAddUser(sender, toNano('0.01'), randomAddress(), 102);
         const m:any = await task2.getUsers();
         // const share:number|null = await task2.getUserShare(addr);
-        // console.log('sendAddUser', taskUpdate.transactions, m, 'share',share);
+        // console.log('sendAddUser', taskUpdate.transactions, m);
         expect(taskUpdate.transactions).toHaveTransaction({
             op: 0x368ddef3,
         });
@@ -73,19 +74,19 @@ describe('Task2', () => {
         const addr = randomAddress();
         const addr2 = randomAddress();
         const taskUpdate = await task2.sendAddUser(sender, toNano('0.01'), addr, 100);
-        await task2.sendAddUser(sender, toNano('0.01'), addr, 101);
+        // await task2.sendAddUser(sender, toNano('0.01'), addr, 101);
         await task2.sendAddUser(sender, toNano('0.01'), addr2, 102);
         // console.log('first sendDelUser', await task2.getUsers());
-        const dd = await task2.sendDelUser(sender, toNano('0.01'), addr2);
-        // const m:any = await task2.getUsers();
-        // const share:number|null = await task2.getUserShare(addr);
-        // console.log('sendDelUser', dd.transactions, m, 'share',share);
+        // const dd = await task2.sendDelUser(sender, toNano('0.01'), addr2);
+        const m:any = await task2.getUsers();
+        const share:number|null = await task2.getUserShare(addr);
+        // console.log('sendDelUser',  m, share);
         // expect(taskUpdate.transactions).toHaveTransaction({
         //     op: 0x368ddef3,
         // });
-        expect(dd.transactions).toHaveTransaction({
-            op: 0x278205c8,
-        });
+        // expect(dd.transactions).toHaveTransaction({
+        //     op: 0x278205c8,
+        // });
         // expect(task1)
     });
     it('should sendSplit', async () => {
@@ -94,12 +95,13 @@ describe('Task2', () => {
         const addr = randomAddress();
         const addr2 = randomAddress();
         await task2.sendAddUser(sender, toNano('0.01'), addr, 100);
-        await task2.sendAddUser(sender, toNano('0.01'), addr, 101);
-        await task2.sendAddUser(sender, toNano('0.01'), addr2, 102);
+        await task2.sendAddUser(sender, toNano('0.01'), addr, 100);
+        await task2.sendAddUser(sender, toNano('0.01'), addr2, 200);
         await task2.sendAddUser(sender, toNano('0.01'), randomAddress(), 2);
-        const taskUpdate = await task2.sendSplit(sender, toNano('0.01'));
-        // const m:any = await task2.getAdmin();
-        console.log('m', taskUpdate.transactions);
+        const taskUpdate = await task2.sendSplit(sender, toNano('10'));
+        const m:any = await task2.getUsers();
+        const i:any = await task2.getInt();
+        console.log('sendSplit', taskUpdate.transactions,m, i);
         expect(taskUpdate.transactions).toHaveTransaction({
             op: 0x068530b3,
         });

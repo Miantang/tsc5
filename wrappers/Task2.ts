@@ -6,6 +6,7 @@ export type Task2Config = {
 };
 
 export function task2ConfigToCell(config: Task2Config): Cell {
+    console.log('config.admin', config.admin);
     return beginCell()//.endCell();
     .storeAddress(config.admin)
     .storeDict(Dictionary.empty())
@@ -97,6 +98,17 @@ export class Task2 implements Contract {
         // return [addr, parseTupleArrayAuto(stack.readTuple())];
         // return [addr, [list.readBigNumberOpt(), list.readBigNumberOpt(), list.readBigNumberOpt(), list.readAddress()]];
         // return await provider.getState()
+    }
+
+    async getInt(provider: ContractProvider) {
+        const {stack} = await provider.get('get_int', []);
+        // return [stack.readNumberOpt(), stack.readNumberOpt(),stack.readNumberOpt() ];
+        return stack.readCellOpt()?.asSlice().loadDictDirect({
+            bits: 256, parse: (src) => src, serialize: (src) => src
+        }, {
+            serialize: (src, builder) => builder.storeUint(src as number, 32), 
+            parse: (slice) => slice.loadUint(32),
+        })
     }
 
     async getUsers(provider: ContractProvider) {
