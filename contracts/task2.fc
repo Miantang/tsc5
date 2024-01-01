@@ -162,13 +162,21 @@ const TRANSFER = 0x7362d09c;
                     .store_uint(0, 1); ;; either_forward_payload
 
                 var transfer_msg = begin_cell()
-                    .store_uint(0x18, 6)
+                    .store_uint(0x10, 6)
                     .store_slice(sender_address)
                     .store_coins(20000000)
                     .store_uint(1, 1 + 4 + 4 + 64 + 32 + 1 + 1)
                     ;; .store_ref(begin_cell().end_cell())
                     ;; .store_uint(1, 1)
-                    .store_ref(msg_body.end_cell());
+                    .store_uint(0x0f8a7ea5, 32)
+                    .store_uint(query_id, 64)
+                    .store_coins(jetton_amount)
+                    .store_slice(userAddr) ;; owner_address
+                    .store_slice(userAddr)  ;;response_address
+                    .store_uint(0, 1) ;; custom_payload
+                    .store_coins(1) ;; forward_ton_amount
+                    .store_uint(0, 1);
+                    ;; .store_ref(msg_body.end_cell());
                 
                 send_raw_message(transfer_msg.end_cell(), 1); ;; revert on errors
 
@@ -198,7 +206,15 @@ const TRANSFER = 0x7362d09c;
                         .store_uint(1, 1 + 4 + 4 + 64 + 32 + 1 + 1)
                         ;; .store_ref(begin_cell().end_cell())
                         ;; .store_uint(1, 1)
-                        .store_ref(msg_body.end_cell());
+                        .store_uint(0x0f8a7ea5, 32)
+                    .store_uint(query_id, 64)
+                    .store_coins(jetton_amount)
+                    .store_slice(userAddr) ;; owner_address
+                    .store_slice(userAddr)  ;;response_address
+                    .store_uint(0, 1) ;; custom_payload
+                    .store_coins(1) ;; forward_ton_amount
+                    .store_uint(0, 1);
+                        ;; .store_ref(msg_body.end_cell());
                     
                     send_raw_message(transfer_msg.end_cell(), 1); ;; revert on errors
 
