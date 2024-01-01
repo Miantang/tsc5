@@ -384,7 +384,6 @@ cell get_users() method_id {
     slice addr = ds~load_msg_addr();
     ;; int epyt = ds~load_uint(1);
     return ds~load_dict();
-    ;; return ds.preload_dict();
 }
 
 int get_user_share(slice user_address) method_id {
@@ -396,17 +395,6 @@ int get_user_share(slice user_address) method_id {
     return share_s~load_uint(32);
     ;; return 1;
 }
-
-;; cell get_int() method_id {
-;;     var ds = get_data().begin_parse(); ;; get data from storage and convert it into a slice to be able to read values
-;;     slice addr = ds~load_msg_addr();
-;;     ds~load_dict();
-;;     var d = ds~load_ref();
-;;     var cs = d.begin_parse();
-;;     return cs~load_dict();
-;;     ;; return ds~load_dict();
-;;     ;; return ds.preload_dict();
-;; }
 
 (slice, slice, int, int, int) get_admin() method_id {
      var ds = get_data().begin_parse(); ;; get data from storage and convert it into a slice to be able to read values
