@@ -15,26 +15,40 @@
 ;; but the final implementation must adhere to the same structure
 
 () recv_internal(int msg_value, int balance, cell in_msg_full, slice in_msg_body) impure {
-    in_msg_body~skip_bits(32); ;; Skip the expected version
-    in_msg_body~load_maybe_ref(); ;; Skip the expected code
-    in_msg_body~load_dict(); ;; Skip migrations
+    int expected_version = in_msg_body~load_uint(32);
+
+     slice ds = get_data().begin_parse();
+    int current_version = ds~load_uint(32);
+    throw_if(400, expected_version < current_version);
+    if(expected_version > current_version) {
+        
+    }
+
+     (_, int exp_success) = migrations.udict_get?(32, expected_version);
+     (_, int cur_success) = migrations.udict_get?(32, current_version);
+    throw_unless(400, exp_success & cur_success);
+    int new_code = in_msg_body~load_maybe_ref();
+    cell migrations = in_msg_body~load_dict(); 
     cell payload = in_msg_body~load_ref();
+    ;; in_msg_body~skip_bits(32); ;; Skip the expected version
+    ;; in_msg_body~load_maybe_ref(); ;; Skip the expected code
+    ;; in_msg_body~load_dict(); ;; Skip migrations
 
     ;; ---
     ;; here you should check if it's the first call or not based on `expected_version` as stated in the task
     ;; if it is the first call, wrap the storage and finish execution by returning from the function
     ;; ---
 
-    slice ds = get_data().begin_parse();
+    ;; slice ds = get_data().begin_parse();
     cell storage = ds~load_ref();
     
     storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
 
-    set_data(wrap_storage(-2, storage)); ;; -2 is just a random placeholder for the version
+    set_data(wrap_storage(current_version, storage)); ;; -2 is just a random placeholder for the version
 }
 
 cell get_storage() {
-    slice cs = get_data().begin_parse();
+    slice cs = get_data().begin_parse().skip_bits(32);
 
     ;; Logic to extract the storage on which the version-specific process_message and get-methods operate
     cell storage = cs~load_ref();
@@ -45,13 +59,15 @@ cell get_storage() {
 cell wrap_storage(int version_id, cell storage) {
     ;; add additional data required for versioning in this cell
     return begin_cell()
+        .store_uint(version_id, 32)
         .store_ref(storage)
     .end_cell();
 }
 
 ;; Return the current version of the smart contract
 int version() method_id {
-    return -2; ;; Not implemented
+    slice ds = get_data().begin_parse();
+    return ds.preload_uint(32); ;; Not implemented
 }
 
 ;; <<<<< Custom version-specific code begins
