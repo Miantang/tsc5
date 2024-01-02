@@ -1,14 +1,5 @@
 #include "imports/stdlib.fc";
 
-int min_tons_for_storage() asm "10000000 PUSHINT"; ;; 0.01 TON
-;; Note that 2 * gas_consumptions is expected to be able to cover fees on both wallets (sender and receiver)
-;; and also constant fees on inter-wallet interaction, in particular fwd fee on state_init transfer
-;; that means that you need to reconsider this fee when:
-;; a) jetton logic become more gas-heavy
-;; b) jetton-wallet code (sent with inter-wallet message) become larger or smaller
-;; c) global fee changes / different workchain
-int gas_consumption() asm "15000000 PUSHINT"; ;; 0.015 TON
-
 const ADDUSER = 0x368ddef3;
 const REMOVEUSER = 0x278205c8;
 const SPLIT = 0x068530b3;
@@ -23,10 +14,6 @@ const TRANSFER = 0x7362d09c;
     ).end_cell().begin_parse();
 }
 
-(int) utils::to_ton(int amount) inline {
-    return amount * 1000000000;
-}
-
 () recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg) impure {
     if (in_msg.slice_bits() < 32) { ;; ignore empty messages
         return ();
@@ -39,15 +26,8 @@ const TRANSFER = 0x7362d09c;
 
     var cs = in_msg_full.begin_parse();
     var flags = cs~load_uint(4);
-    ;; if(flags & 1) {
-    ;;     return ();
-    ;; }
+ 
     slice sender_address = cs~load_msg_addr();
-    cs~load_msg_addr(); ;; skip dst
-    cs~load_coins(); ;; skip value
-    cs~skip_bits(1); ;; skip extracurrency collection
-    cs~load_coins(); ;; skip ihr_fee
-
 
     if(op == ADDUSER) {
         throw_if(120, ~ equal_slices(sender_address, admin_address));
@@ -153,16 +133,6 @@ const TRANSFER = 0x7362d09c;
                     .store_slice(sender_address)
                     .store_coins(20000000)
                     .store_uint(1, 1 + 4 + 4 + 64 + 32 + 1 + 1)
-                    ;; .store_ref(begin_cell().end_cell())
-                    ;; .store_uint(1, 1)
-                ;;     .store_uint(0x0f8a7ea5, 32)
-                ;; .store_uint(query_id, 64)
-                ;; .store_coins(jetton_amount)
-                ;; .store_slice(userAddr) ;; owner_address
-                ;; .store_slice(userAddr)  ;;response_address
-                ;; .store_uint(0, 1) ;; custom_payload
-                ;; .store_coins(1) ;; forward_ton_amount
-                ;; .store_uint(0, 1);
                     .store_ref(msg_body.end_cell());
                 
                 send_raw_message(transfer_msg.end_cell(), 1); ;; revert on errors
@@ -194,13 +164,4 @@ int get_user_share(slice user_address) method_id {
     (slice share_s, int success) = users.udict_get?(256, addressHash);
     return share_s~load_uint(32);
     ;; return 1;
-}
-
-(slice, slice, int, int, int) get_admin() method_id {
-     var ds = get_data().begin_parse(); ;; get data from storage and convert it into a slice to be able to read values
-    var admin_address = ds~load_msg_addr();
-   
-    (int wc, int addr) = parse_std_addr(admin_address);
-    slice parsed =  get_serialized_address(wc, addr);
-    return (admin_address, parsed, wc, addr, equal_slices(admin_address,parsed));
 }
