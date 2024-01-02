@@ -24,12 +24,13 @@
         
     }
 
+    cell new_code = in_msg_body~load_maybe_ref();
+    cell migrations = in_msg_body~load_dict(); 
+    cell payload = in_msg_body~load_ref();
      (_, int exp_success) = migrations.udict_get?(32, expected_version);
      (_, int cur_success) = migrations.udict_get?(32, current_version);
     throw_unless(400, exp_success & cur_success);
-    int new_code = in_msg_body~load_maybe_ref();
-    cell migrations = in_msg_body~load_dict(); 
-    cell payload = in_msg_body~load_ref();
+    
     ;; in_msg_body~skip_bits(32); ;; Skip the expected version
     ;; in_msg_body~load_maybe_ref(); ;; Skip the expected code
     ;; in_msg_body~load_dict(); ;; Skip migrations
