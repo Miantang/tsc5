@@ -16,20 +16,38 @@
 
 () recv_internal(int msg_value, int balance, cell in_msg_full, slice in_msg_body) impure {
     int expected_version = in_msg_body~load_uint(32);
-
-     slice ds = get_data().begin_parse();
-    int current_version = ds~load_uint(32);
-    throw_if(400, expected_version < current_version);
-    if(expected_version > current_version) {
-        
-    }
-
     cell new_code = in_msg_body~load_maybe_ref();
     cell migrations = in_msg_body~load_dict(); 
     cell payload = in_msg_body~load_ref();
-     (_, int exp_success) = migrations.udict_get?(32, expected_version);
-     (_, int cur_success) = migrations.udict_get?(32, current_version);
-    throw_unless(400, exp_success & cur_success);
+
+    if(expected_version == 0) {  
+        set_code(new_code);
+
+        slice ds = get_data().begin_parse();
+        cell storage = ds~load_ref();
+        storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
+
+        set_data(wrap_storage(1, storage)); 
+        return ();
+    }
+
+    slice ds = get_data().begin_parse();
+    int current_version = ds~load_uint(32);
+    throw_if(400, expected_version < current_version);
+    if(expected_version > current_version) {
+         cell new_code = in_msg_body~load_maybe_ref();
+        ;;  if(new_code.)
+        throw_if(200, new_code.begin_parse().slice_refs_empty?());
+        set_code(new_code);
+
+        (_, int exp_success) = migrations.udict_get?(32, expected_version);
+        (_, int cur_success) = migrations.udict_get?(32, current_version);
+        throw_unless(400, exp_success & cur_success);
+        
+        return ();
+    }
+
+   
     
     ;; in_msg_body~skip_bits(32); ;; Skip the expected version
     ;; in_msg_body~load_maybe_ref(); ;; Skip the expected code
