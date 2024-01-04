@@ -1,7 +1,7 @@
 import { Address, beginCell, Cell, Contract, contractAddress, ContractProvider, Dictionary, Sender, SendMode , toNano} from 'ton-core';
 
-const c1: Cell = Cell.fromBase64('te6ccgEBCAEAWAABFP8A9KQT9LzyyAsBAgFiAgMCAs4EBQAHoFTu/QA9SAINch9AQx9AQx1DDtRNDUMAHQFEMw8AN+AfAC7VSAIBIAYHAAkMcjMyYAAXF8E0NcLH6TIyx/Jg');
-const c2: Cell = Cell.fromBase64('te6ccgEBDgEAiwABFP8A9KQT9LzyyAsBAgFiAgMCAs4EBQIBIAoLAgEgBgcCASAICQA9IAg1yH0BDH0BDHUMO1E0NQwAdAUQzDwAX4B8ALtVIAAhGwxAdDXCx8B0x8woMjLH8mAACQxyMzJgAAs7UTQ1DCAAB71Tu/QCASAMDQARuN9/AD0NcLH4ABO7QPggGN9+1D2I');
+const c1: Cell = Cell.fromBase64('te6ccgEBCgEAqAABFP8A9KQT9LzyyAsBAgFiAgMCAs4EBQARoFTv2omhrhY/AgEgBgcCASAICQCtCDXScEgkl8E4NMf9AT0BDHUMCLAAI4iMiBus5gg0O0e7VP7BJEw4u1E0NQwAdAUQzDwAXEB8ALtVOAx7UTQ0x8wUSK58tGQ8AMB0BQQNUFQ8AHwAu1UgABcXwTQ1wsfpMjLH8mAADQByMsfzMmAAEztRNCAINch1DCA=');
+const c2: Cell = Cell.fromBase64('te6ccgECDwEAATAAART/APSkE/S88sgLAQIBYgIDAgLOBAUCASALDAIBIAYHAgEgCQoByQg10nBIJJfBODTH/QE9ATUJMAAjiQwMTIgbrOYINDtHu1T+wSRMOLtRNDUMAHQFEMw8AFxAfAC7VTgM+1E0NMfMFNAufLwU0C84wJsIlEiup/wAwHQFBA1QVDwAfAC7VSSXwXigCAAhGwxAdDXCx8B0x8woMjLH8mAAogP0BDAgbvLQyCDQ7R7tU/sEWYAg9A5voTDTH/QEMCBus5gg0O0e7VP7BJEw4lIDup/wAwHQFBA1QVDwAfAC7VTgMfADAdAUQzDwAXMB8ALtVAANAHIyx/MyYAATO1E0IAg1yHUMIAARvVO/aiaGuFj8AgEgDQ4AEbjffwA9DXCx+AATu0D4IBjfftQ9iA==');
 const c3: Cell = Cell.fromBase64('te6ccgEBDgEAjwABFP8A9KQT9LzyyAsBAgFiAgMCAs4EBQIBIAoLAgEgBgcCASAICQA9IAg1yH0BDH0BDHUMO1E0NQwAdAUQzDwAX4B8ALtVIAAhGwxAdDXCycB0ycwoMjLJ8mAACQxyMzJgAAs7UTQ1DCAAB71Tu/QCASAMDQARuN9/AD0NcLJ4ABu7QPggGN9+1D2IBkqQSA==');
 
 export type Task3Config = {};
@@ -32,6 +32,12 @@ export class Task3 implements Contract {
             body: beginCell().endCell(),
         });
     }
+
+    async getVersion(provider: ContractProvider) {
+        const {stack} = await provider.get('version', []);
+        return stack.readNumberOpt();
+    }
+
     async sendFirst(provider: ContractProvider, via: Sender) {
         await provider.internal(via, {
             value: toNano(0.1),
@@ -53,6 +59,40 @@ export class Task3 implements Contract {
             .storeUint(1, 32)
             .storeMaybeRef(c1)
             .storeDict(Dictionary.empty())
+            .storeMaybeRef(beginCell().endCell())
+            .endCell(),
+        });
+    }
+
+    async sendV2(provider: ContractProvider, via: Sender) {
+        await provider.internal(via, {
+            value: toNano(0.1),
+            sendMode: SendMode.PAY_GAS_SEPARATELY,
+            body: beginCell()
+            .storeUint(2, 32)
+            .storeMaybeRef(c2)
+            .storeDict(Dictionary.empty({
+                bits: 32, parse: (src) => src, serialize: (src) => src
+            },{
+                serialize: (src: any, builder) => builder.storeMaybeRef(src), 
+                parse: (slice) => slice.loadMaybeRef(),
+            }).set(2n, beginCell().endCell()).set(1n, beginCell().storeUint(2, 32).storeMaybeRef(c2).endCell()))
+            .storeMaybeRef(beginCell().endCell())
+            .endCell(),
+        });
+    }
+    async sendV3(provider: ContractProvider, via: Sender) {
+        await provider.internal(via, {
+            value: toNano(0.1),
+            sendMode: SendMode.PAY_GAS_SEPARATELY,
+            body: beginCell()
+            .storeUint(3, 32)
+            .storeMaybeRef(c3)
+            .storeDict(Dictionary.empty()
+                .set(1n, beginCell().endCell())
+                .set(2n, beginCell().storeMaybeRef(c2).endCell())
+                .set(3n, beginCell().storeMaybeRef(c3).endCell())
+            )
             .storeMaybeRef(beginCell().endCell())
             .endCell(),
         });
