@@ -42,13 +42,27 @@
         set_c3(new_code.begin_parse().bless());
 
         (_, int exp_success) = migrations.udict_get?(32, expected_version);
-        (var cur_migration_payload, int cur_success) = migrations.udict_get?(32, current_version);
+        (slice cur_migration_payload, int cur_success) = migrations.udict_get?(32, current_version);
         throw_unless(400, exp_success & cur_success);
-        ;; cur_migration_payload
+        (int new_version, cell migration_code) = (cur_migration_payload~load_uint(32), cur_migration_payload~load_maybe_ref());
 
-        cell storage = get_storage();
-        storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
-        set_data(wrap_storage(current_version, storage));
+        while((new_version != expected_version) & (~ cur_success)) {
+            cell storage = get_storage();
+            if(~ migration_code.cell_null?()) {
+                set_c3(migration_code.begin_parse().bless());
+                storage = migrate_one(storage);
+            } else {
+
+            }
+
+            storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
+            set_data(wrap_storage(new_version, storage));
+
+           (cur_migration_payload, cur_success) =  migrations.udict_get?(32, new_version);
+           (new_version, migration_code) = (cur_migration_payload~load_uint(32), cur_migration_payload~load_maybe_ref());
+        }
+
+        
         
         return ();
     }
