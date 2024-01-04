@@ -27,9 +27,9 @@ describe('Task1', () => {
         const deployResult = await task1.sendDeploy(deployer.getSender(), toNano('0.05'));
 
         expect(deployResult.transactions).toHaveTransaction({
-            // from: deployer.address,
-            // to: task1.address,
-            // deploy: true,
+            from: deployer.address,
+            to: task1.address,
+            deploy: true,
             success: true,
         });
     });

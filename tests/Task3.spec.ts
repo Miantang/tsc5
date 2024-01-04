@@ -35,4 +35,18 @@ describe('Task3', () => {
         // the check is done inside beforeEach
         // blockchain and task3 are ready to use
     });
+    it('should fff', async () => {
+        // the check is done inside beforeEach
+        // blockchain and task3 are ready to use
+        const deployer = await blockchain.treasury('deployer');
+        const sender = deployer.getSender();
+        const m0 = await task3.sendFirst(sender);
+        const m = await task3.sendV1(sender);
+        // console.log('m', m.transactions);
+        expect(m.transactions).toHaveTransaction({
+            success: true,
+        });
+    });
+
+    
 });

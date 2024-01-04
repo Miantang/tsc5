@@ -99,3 +99,8 @@ Stay in the loop and engage with other developers:
 - [TON Dev Chat (EN)](https://t.me/tondev_eng)
 - [TON Dev Chat (中文)](https://t.me/tondev_zh)
 - [TON Dev Chat (РУ)](https://t.me/tondev)
+
+
+npx func-js ./contracts/imports/stdlib.fc ./contracts/task1.fc --fift ./1.ft
+
+npx func-js ./contracts/imports/stdlib.fc ./descriptions/3-example/counter-v1.fc --boc-base64 ./1.bc
