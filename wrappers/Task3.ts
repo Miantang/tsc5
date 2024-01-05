@@ -5,6 +5,7 @@ const c1: Cell = Cell.fromBase64(fs.readFileSync('descriptions/example/c1.bc', '
 const c2: Cell = Cell.fromBase64(fs.readFileSync('descriptions/example/c2.bc', 'utf8'));
 const c3: Cell = Cell.fromBase64(fs.readFileSync('descriptions/example/c3.bc', 'utf8'));
 const c4: Cell = Cell.fromBase64(fs.readFileSync('descriptions/example/c4.bc', 'utf8'));
+const c3_v: Cell = Cell.fromBase64(fs.readFileSync('descriptions/example/c3-v.bc', 'utf8'));
 
 export type Task3Config = {};
 
@@ -119,7 +120,7 @@ export class Task3 implements Contract {
             }),
         })
             .set(1n, beginCell().storeUint(2, 32).storeMaybeRef().endCell())
-            .set(2n, beginCell().storeUint(3, 32).storeMaybeRef(c3).endCell())
+            .set(2n, beginCell().storeUint(3, 32).storeMaybeRef(c3_v).endCell())
             // .set(3n, beginCell().storeUint(3n, 32).storeMaybeRef(beginCell().endCell()).endCell());
 
             const slice = dic.get(2n).asSlice();
@@ -147,7 +148,7 @@ export class Task3 implements Contract {
             }),
         })
             .set(1n, beginCell().storeUint(2, 32).storeMaybeRef().endCell())
-            .set(2n, beginCell().storeUint(3, 32).storeMaybeRef(c3).endCell())
+            .set(2n, beginCell().storeUint(3, 32).storeMaybeRef(c3_v).endCell())
             .set(3n, beginCell().storeUint(4n, 32).storeMaybeRef().endCell());
 
             const slice = dic.get(2n).asSlice();
@@ -185,7 +186,7 @@ export class Task3 implements Contract {
             sendMode: SendMode.PAY_GAS_SEPARATELY,
             body: beginCell()
             .storeUint(4n, 32)
-            .storeMaybeRef()
+            .storeMaybeRef(c4)
             .storeDict(dic)
             .storeRef(beginCell().storeUint(num, 40).storeUint(num, 40).storeUint(num, 40).storeUint(num, 40).endCell())
             .endCell(),
