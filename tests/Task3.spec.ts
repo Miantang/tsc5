@@ -74,6 +74,8 @@ describe('Task3', () => {
         const deployer = await blockchain.treasury('deployer');
         const sender = deployer.getSender();
         const m0 = await task3.sendFirst(sender);
+        const version0 = await task3.getVersion();
+        console.log('version0', version0);
         const m = await task3.sendV3(sender);
         const version = await task3.getVersion();
         const ss = await task3.getStorage();
