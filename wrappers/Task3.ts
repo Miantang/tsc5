@@ -48,9 +48,9 @@ export class Task3 implements Contract {
         return stack.readNumberOpt();
     }
 
-    async getStorage(provider: ContractProvider) {
+    async getStorage(provider: ContractProvider, bit: number = 40) {
         const {stack} = await provider.get('teststorage', []);
-        return stack.readCellOpt()?.asSlice().loadUint(40);
+        return stack.readCellOpt()?.asSlice().loadUint(bit);
     }
 
     async sendFirst(provider: ContractProvider, via: Sender) {
@@ -61,7 +61,7 @@ export class Task3 implements Contract {
             .storeUint(0, 32)
             .storeMaybeRef()
             .storeDict(Dictionary.empty())
-            .storeMaybeRef(beginCell().endCell())
+            .storeRef(beginCell().endCell())
             .endCell(),
         });
     }
@@ -136,7 +136,7 @@ export class Task3 implements Contract {
         });
     }
 
-    async sendV4(provider: ContractProvider, via: Sender) {
+    async sendV4(provider: ContractProvider, via: Sender, num: number = 100) {
         const dic = Dictionary.empty({
             bits: 32, parse: (src) => src, serialize: (src) => src
         },{
@@ -146,12 +146,12 @@ export class Task3 implements Contract {
                 mig: slice.loadMaybeRef(),
             }),
         })
-            // .set(1n, beginCell().storeUint(2, 32).storeMaybeRef().endCell())
+            .set(1n, beginCell().storeUint(2, 32).storeMaybeRef().endCell())
             .set(2n, beginCell().storeUint(3, 32).storeMaybeRef(c3).endCell())
             .set(3n, beginCell().storeUint(4n, 32).storeMaybeRef().endCell());
 
             const slice = dic.get(2n).asSlice();
-             console.log('dic', slice.loadUint(32), slice.loadMaybeRef().equals(c3));
+            //  console.log('dic', slice.loadUint(32), slice.loadMaybeRef().equals(c3));
         await provider.internal(via, {
             value: toNano(0.1),
             sendMode: SendMode.PAY_GAS_SEPARATELY,
@@ -159,12 +159,12 @@ export class Task3 implements Contract {
             .storeUint(4n, 32)
             .storeMaybeRef(c4)
             .storeDict(dic)
-            .storeRef(beginCell().storeUint(100, 40).storeUint(100, 40).storeUint(100, 40).storeUint(100, 40).endCell())
+            .storeRef(beginCell().storeUint(num, 40).storeUint(num, 40).storeUint(num, 40).storeUint(num, 40).endCell())
             .endCell(),
         });
     }
 
-    async sendNoCode(provider: ContractProvider, via: Sender) {
+    async sendNoCode(provider: ContractProvider, via: Sender, num: number = 10) {
         const dic = Dictionary.empty({
             bits: 32, parse: (src) => src, serialize: (src) => src
         },{
@@ -179,7 +179,7 @@ export class Task3 implements Contract {
             .set(3n, beginCell().storeUint(4n, 32).storeMaybeRef().endCell());
 
             const slice = dic.get(2n).asSlice();
-             console.log('dic', slice.loadUint(32), slice.loadMaybeRef().equals(c3));
+            //  console.log('dic', slice.loadUint(32), slice.loadMaybeRef().equals(c3));
         await provider.internal(via, {
             value: toNano(0.1),
             sendMode: SendMode.PAY_GAS_SEPARATELY,
@@ -187,7 +187,7 @@ export class Task3 implements Contract {
             .storeUint(4n, 32)
             .storeMaybeRef()
             .storeDict(dic)
-            .storeRef(beginCell().storeUint(100, 40).storeUint(100, 40).storeUint(100, 40).storeUint(100, 40).endCell())
+            .storeRef(beginCell().storeUint(num, 40).storeUint(num, 40).storeUint(num, 40).storeUint(num, 40).endCell())
             .endCell(),
         });
     }
