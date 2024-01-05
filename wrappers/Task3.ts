@@ -1,14 +1,19 @@
 import { Address, beginCell, Cell, Contract, contractAddress, ContractProvider, Dictionary, Sender, SendMode , toNano} from 'ton-core';
+import * as fs from 'fs';
 
-const c1: Cell = Cell.fromBase64('te6ccgECCwEAARcAART/APSkE/S88sgLAQIBYgIDAgLOBAUAEaBU79qJoa4WPwIBIAYHAgEgCQoByyCMQAAAAAAAAGA+AEg10nBIJJfBODTH/QE9ATUMCPAAI4cECZfBiBu8tDIINDtHu1T+wTtRNDUMHEB8AHtVODtRNDTH1NRufLRkFNRvOMCMzNRMrqd1DAC0F4xE/AD8AHtVOBfBoAgADQByMsfzMmAAzCRu8tDIJNDtHu1TBPsEIoAg9A5vofLhkCDHAPLRkdMf9AQwBNQwji4kbrOYJNDtHu1T8ALeUxOAIPQOb6EhxwDy0ZKXMjTTH/QEMJUw8sDIBOJTFboV5jEzMdAUEDVBUPAD8AHtVAABIAAXF8E0NcLH6TIyx/Jg');
-const c2: Cell = Cell.fromBase64('te6ccgECEQEAAU4AART/APSkE/S88sgLAQIBYgIDAgLNBAUCASANDgIBIAYHABPXaiaEAQa5DqGEAgEgCAkCASALDAHLIIxAAAAAAAAAYD4ASDXScEgkl8E4NMf9AT0BNQwI8AAjhwQJl8GIG7y0Mgg0O0e7VP7BO1E0NQwcQHwAe1U4O1E0NMfU1G58tGQU1G84wIzM1Eyup3UMALQXjET8APwAe1U4F8GgCgANAHIyx/MyYADMJG7y0Mgk0O0e7VME+wQigCD0Dm+h8uGQIMcA8tGR0x/0BDAE1DCOLiRus5gk0O0e7VPwAt5TE4Ag9A5voSHHAPLRkpcyNNMf9AQwlTDywMgE4lMVuhXmMTMx0BQQNUFQ8APwAe1UAAEgACEbDEB0NcLHwHTHzCgyMsfyYAARvVO/aiaGuFj8AgEgDxAAEbjffwBNDXCx+AATu0D4IBjfftQ9iA==');
-const c3: Cell = Cell.fromBase64('te6ccgECEQEAAVwAART/APSkE/S88sgLAQIBYgIDAgLNBAUCASANDgIBIAYHABPXaiaEAQa5DqGEAgEgCAkCASALDAHLIIxAAAAAAAAAYD4ASDXScEgkl8E4NMf9AT0BNQwI8AAjhwQJl8GIG7y0Mgg0O0e7VP7BO1E0NQwcQHwAe1U4O1E0NMfU1G58tGQU1G84wIzM1Eyup3UMALQXjET8APwAe1U4F8GgCgANAHIyx/MyYADMJG7y0Mgk0O0e7VME+wQigCD0Dm+h8uGQIMcA8tGR0x/0BDAE1DCOLiRus5gk0O0e7VPwAt5TE4Ag9A5voSHHAPLRkpcyNNMf9AQwlTDywMgE4lMVuhXmMTMx0BQQNUFQ8APwAe1UABU0NcLH6dkyMsnyYAAhGwxAdDXCycB0ycwoMjLJ8mAAEb1Tv2omhrhY/AIBIA8QABG4338ATQ1wsngAG7tA+CAY337UPYgGSpBI');
+const fileContent1: string = fs.readFileSync('descriptions/example/c1.bc', 'utf8');
+const fileContent2: string = fs.readFileSync('descriptions/example/c2.bc', 'utf8');
+const fileContent3: string = fs.readFileSync('descriptions/example/c3.bc', 'utf8');
+
+const c1: Cell = Cell.fromBase64(fileContent1);
+const c2: Cell = Cell.fromBase64(fileContent2);
+const c3: Cell = Cell.fromBase64(fileContent3);
 
 export type Task3Config = {};
 
 export function task3ConfigToCell(config: Task3Config): Cell {
     return beginCell()
-    .storeRef(beginCell().storeUint(9, 32).endCell())
+    .storeRef(beginCell().storeUint(77, 32).endCell())
     .endCell();
 }
 
@@ -36,6 +41,19 @@ export class Task3 implements Contract {
     async getVersion(provider: ContractProvider) {
         const {stack} = await provider.get('version', []);
         return stack.readNumberOpt();
+    }
+    async getUSDAmount(provider: ContractProvider) {
+        const {stack} = await provider.get('get_USD_amount', []);
+        return stack.readNumberOpt();
+    }
+    async getAmount(provider: ContractProvider) {
+        const {stack} = await provider.get('get_amount', []);
+        return stack.readNumberOpt();
+    }
+
+    async getStorage(provider: ContractProvider) {
+        const {stack} = await provider.get('teststorage', []);
+        return stack.readCellOpt()?.asSlice().loadUint(32);
     }
 
     async sendFirst(provider: ContractProvider, via: Sender) {
@@ -73,7 +91,9 @@ export class Task3 implements Contract {
                 new_version: slice.loadUint(32),
                 mig: slice.loadMaybeRef(),
             }),
-        }).set(2n, beginCell().storeUint(2, 32).storeMaybeRef(beginCell().endCell()).endCell()).set(1n, beginCell().storeUint(2, 32).storeMaybeRef(c2).endCell());
+        })
+        .set(1n, beginCell().storeUint(2, 32).storeMaybeRef().endCell())
+        // .set(2n, beginCell().storeUint(2, 32).storeMaybeRef(beginCell().storeUint(2, 32).storeMaybeRef(c3).endCell()).endCell())
         // console.log('dic', dic.get(2n).asSlice().loadDictDirect({
         //     bits: 32, parse: (src: bigint) => src, serialize: (src: bigint) => src
         // }, {
@@ -87,7 +107,7 @@ export class Task3 implements Contract {
             .storeUint(2, 32)
             .storeMaybeRef(c2)
             .storeDict(dic)
-            .storeRef(beginCell().storeUint(44, 32).endCell())
+            .storeRef(beginCell().storeUint(7, 32).endCell())
             .endCell(),
         });
     }
@@ -107,11 +127,11 @@ export class Task3 implements Contract {
                     mig: slice.loadMaybeRef(),
                 }),
             })
-                .set(1n, beginCell().storeUint(2n, 32).storeMaybeRef(c3).endCell())
-                .set(2n, beginCell().storeUint(1n, 32).storeMaybeRef(c2).endCell())
-                .set(3n, beginCell().storeUint(3, 32).storeMaybeRef(beginCell().endCell()).endCell())
+                .set(1n, beginCell().storeUint(2, 32).storeMaybeRef().endCell())
+                .set(2n, beginCell().storeUint(3n, 32).storeMaybeRef(c3).endCell())
+                // .set(3n, beginCell().storeUint(3n, 32).storeMaybeRef(beginCell().endCell()).endCell())
             )
-            .storeMaybeRef(beginCell().endCell())
+            .storeRef(beginCell().storeUint(100, 40).endCell())
             .endCell(),
         });
     }

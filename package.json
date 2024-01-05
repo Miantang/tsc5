@@ -4,6 +4,7 @@
     "scripts": {
         "start": "blueprint run",
         "build": "blueprint build",
+        "b3": "npx func-js ./contracts/imports/stdlib.fc ./descriptions/example/counter-v3.fc --boc-base64 ./descriptions/example/c3.bc && npx func-js ./contracts/imports/stdlib.fc ./descriptions/example/counter-v1.fc --boc-base64 ./descriptions/example/c1.bc && npx func-js ./contracts/imports/stdlib.fc ./descriptions/example/counter-v2.fc --boc-base64 ./descriptions/example/c2.bc",
         "test": "jest --runInBand --detectOpenHandles --no-cache",
         "postinstall": "patch-package"
     },
