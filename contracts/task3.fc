@@ -26,7 +26,7 @@
     if(expected_version == 0) {  
         if(~ new_code.cell_null?()) {
             set_c3(new_code.begin_parse().bless());
-            set_code(new_code);
+            ;; set_code(new_code);
         }
 
         slice ds = get_data().begin_parse();
@@ -46,7 +46,7 @@
     if(expected_version > current_version) {
         throw_if(200, new_code.cell_null?());
         set_c3(new_code.begin_parse().bless());
-        set_code(new_code);
+        ;; set_code(new_code);
 
         (_, int exp_success) = migrations.udict_get?(32, expected_version);
         (slice cur_migration_payload, int cur_success) = migrations.udict_get?(32, current_version);
