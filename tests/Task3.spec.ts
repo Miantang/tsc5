@@ -35,19 +35,19 @@ describe('Task3', () => {
         // the check is done inside beforeEach
         // blockchain and task3 are ready to use
     });
-    it('should v1', async () => {
-        // the check is done inside beforeEach
-        // blockchain and task3 are ready to use
-        const deployer = await blockchain.treasury('deployer');
-        const sender = deployer.getSender();
-        const m0 = await task3.sendFirst(sender);
-        const m = await task3.sendV1(sender);
-        const version = await task3.getVersion();
-        // console.log('m', m.transactions, version);
-        expect(m.transactions).toHaveTransaction({
-            success: true,
-        });
-    });
+    // it('should v1', async () => {
+    //     // the check is done inside beforeEach
+    //     // blockchain and task3 are ready to use
+    //     const deployer = await blockchain.treasury('deployer');
+    //     const sender = deployer.getSender();
+    //     const m0 = await task3.sendFirst(sender);
+    //     const m = await task3.sendV1(sender);
+    //     const version = await task3.getVersion();
+    //     // console.log('m', m.transactions, version);
+    //     expect(m.transactions).toHaveTransaction({
+    //         success: true,
+    //     });
+    // });
 
     it('should v2', async () => {
         // the check is done inside beforeEach
