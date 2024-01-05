@@ -20,7 +20,11 @@
         return ();
     }
     int expected_version = in_msg_body~load_uint(32);
-    cell new_code = in_msg_body~load_maybe_ref();
+
+    var new_code = null();
+    if(in_msg_body~load_uint(1) == 1) {
+        new_code = in_msg_body~load_ref();
+    }
     cell migrations = in_msg_body~load_dict(); 
     cell payload = in_msg_body~load_ref();
 
@@ -55,8 +59,11 @@
         ;; throw_if(400, cur_migration_payload.slice_empty?());
         ;; throw_if(400, cur_migration_payload.slice_refs_empty?());
         ;; if(~ cur_migration_payload.slice_empty?())
-        (int new_version, cell migration_code) = (cur_migration_payload~load_uint(32), cur_migration_payload~load_maybe_ref());
-        
+        (int new_version, int has_migration_code) = (cur_migration_payload~load_uint(32), cur_migration_payload~load_uint(1));
+        var migration_code = null();
+        if(has_migration_code == 1) {
+            migration_code = cur_migration_payload~load_ref();
+        }
         cell storage = ds~load_ref();
 
 
