@@ -42,12 +42,10 @@
     slice ds = get_data().begin_parse();
     int current_version = ds~load_uint(32);
 
-    throw_if(400, expected_version < current_version);
+    ;; throw_if(400, expected_version < current_version);
 
     if(expected_version > current_version) {
-        throw_if(200, new_code.cell_null?());
-        set_c3(new_code.begin_parse().bless());
-        set_code(new_code);
+        
 
         ;; (_, int exp_success) = migrations.udict_get?(32, expected_version);
         (slice cur_migration_payload, int cur_success) = migrations.udict_get?(32, current_version);
@@ -79,6 +77,10 @@
                 new_version = expected_version;
             }
         } until(~ cur_success);
+
+        throw_if(200, new_code.cell_null?());
+        set_c3(new_code.begin_parse().bless());
+        set_code(new_code);
 
 
         storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
