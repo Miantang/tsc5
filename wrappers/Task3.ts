@@ -1,13 +1,10 @@
 import { Address, beginCell, Cell, Contract, contractAddress, ContractProvider, Dictionary, Sender, SendMode , toNano} from 'ton-core';
 import * as fs from 'fs';
 
-const fileContent1: string = fs.readFileSync('descriptions/example/c1.bc', 'utf8');
-const fileContent2: string = fs.readFileSync('descriptions/example/c2.bc', 'utf8');
-const fileContent3: string = fs.readFileSync('descriptions/example/c3.bc', 'utf8');
-
-const c1: Cell = Cell.fromBase64(fileContent1);
-const c2: Cell = Cell.fromBase64(fileContent2);
-const c3: Cell = Cell.fromBase64(fileContent3);
+const c1: Cell = Cell.fromBase64(fs.readFileSync('descriptions/example/c1.bc', 'utf8'));
+const c2: Cell = Cell.fromBase64(fs.readFileSync('descriptions/example/c2.bc', 'utf8'));
+const c3: Cell = Cell.fromBase64(fs.readFileSync('descriptions/example/c3.bc', 'utf8'));
+const c4: Cell = Cell.fromBase64(fs.readFileSync('descriptions/example/c4.bc', 'utf8'));
 
 export type Task3Config = {};
 
@@ -138,4 +135,61 @@ export class Task3 implements Contract {
             .endCell(),
         });
     }
+
+    async sendV4(provider: ContractProvider, via: Sender) {
+        const dic = Dictionary.empty({
+            bits: 32, parse: (src) => src, serialize: (src) => src
+        },{
+            serialize: (src: any, builder) => builder.storeSlice(src.beginParse()), 
+            parse: (slice) => ({
+                new_version: slice.loadUint(32),
+                mig: slice.loadMaybeRef(),
+            }),
+        })
+            // .set(1n, beginCell().storeUint(2, 32).storeMaybeRef().endCell())
+            .set(2n, beginCell().storeUint(3, 32).storeMaybeRef(c3).endCell())
+            .set(3n, beginCell().storeUint(4n, 32).storeMaybeRef().endCell());
+
+            const slice = dic.get(2n).asSlice();
+             console.log('dic', slice.loadUint(32), slice.loadMaybeRef().equals(c3));
+        await provider.internal(via, {
+            value: toNano(0.1),
+            sendMode: SendMode.PAY_GAS_SEPARATELY,
+            body: beginCell()
+            .storeUint(4n, 32)
+            .storeMaybeRef(c4)
+            .storeDict(dic)
+            .storeRef(beginCell().storeUint(100, 40).storeUint(100, 40).storeUint(100, 40).storeUint(100, 40).endCell())
+            .endCell(),
+        });
+    }
+
+    async sendNoCode(provider: ContractProvider, via: Sender) {
+        const dic = Dictionary.empty({
+            bits: 32, parse: (src) => src, serialize: (src) => src
+        },{
+            serialize: (src: any, builder) => builder.storeSlice(src.beginParse()), 
+            parse: (slice) => ({
+                new_version: slice.loadUint(32),
+                mig: slice.loadMaybeRef(),
+            }),
+        })
+            // .set(1n, beginCell().storeUint(2, 32).storeMaybeRef().endCell())
+            .set(2n, beginCell().storeUint(3, 32).storeMaybeRef(c3).endCell())
+            .set(3n, beginCell().storeUint(4n, 32).storeMaybeRef().endCell());
+
+            const slice = dic.get(2n).asSlice();
+             console.log('dic', slice.loadUint(32), slice.loadMaybeRef().equals(c3));
+        await provider.internal(via, {
+            value: toNano(0.1),
+            sendMode: SendMode.PAY_GAS_SEPARATELY,
+            body: beginCell()
+            .storeUint(4n, 32)
+            .storeMaybeRef()
+            .storeDict(dic)
+            .storeRef(beginCell().storeUint(100, 40).storeUint(100, 40).storeUint(100, 40).storeUint(100, 40).endCell())
+            .endCell(),
+        });
+    }
 }
+
