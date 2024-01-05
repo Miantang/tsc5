@@ -121,14 +121,14 @@ describe('Task3', () => {
         const ss = await task3.getStorage();
         // const am = await task3.getAmount();
         // const usdam = await task3.getUSDAmount();
-        console.log('m', version, ss);
+        console.log('m',m.transactions, version, ss);
         expect(m.transactions).toHaveTransaction({
             success: true,
         });
     });
 
     it('should v more', async () => {
-        // const deployer = await blockchain.treasury('deployer');
+        const deployer = await blockchain.treasury('deployer');
         const sender = deployer.getSender();
         const m0 = await task3.sendFirst(sender);
         const version0 = await task3.getVersion();

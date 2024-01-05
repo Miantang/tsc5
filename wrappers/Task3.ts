@@ -120,7 +120,7 @@ export class Task3 implements Contract {
             }),
         })
             .set(1n, beginCell().storeUint(2, 32).storeMaybeRef().endCell())
-            .set(2n, beginCell().storeUint(3, 32).storeMaybeRef(c3_v).endCell())
+            .set(2n, beginCell().storeUint(3, 32).storeMaybeRef(c3).endCell())
             // .set(3n, beginCell().storeUint(3n, 32).storeMaybeRef(beginCell().endCell()).endCell());
 
             const slice = dic.get(2n).asSlice();
@@ -148,7 +148,7 @@ export class Task3 implements Contract {
             }),
         })
             .set(1n, beginCell().storeUint(2, 32).storeMaybeRef().endCell())
-            .set(2n, beginCell().storeUint(3, 32).storeMaybeRef(c3_v).endCell())
+            .set(2n, beginCell().storeUint(3, 32).storeMaybeRef(c3).endCell())
             .set(3n, beginCell().storeUint(4n, 32).storeMaybeRef().endCell());
 
             const slice = dic.get(2n).asSlice();
