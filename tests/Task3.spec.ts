@@ -79,9 +79,9 @@ describe('Task3', () => {
         const m = await task3.sendV3(sender);
         const version = await task3.getVersion();
         const ss = await task3.getStorage();
-        // const am = await task3.getAmount();
-        // const usdam = await task3.getUSDAmount();
-        console.log('m', m.transactions, version, ss);
+        const am = await task3.getAmount();
+        const usdam = await task3.getUSDAmount();
+        console.log('m', m.transactions, version, ss, am, usdam);
         expect(m.transactions).toHaveTransaction({
             success: true,
         });

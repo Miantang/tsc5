@@ -53,7 +53,7 @@ export class Task3 implements Contract {
 
     async getStorage(provider: ContractProvider) {
         const {stack} = await provider.get('teststorage', []);
-        return stack.readCellOpt()?.asSlice().loadUint(32);
+        return stack.readCellOpt()?.asSlice().loadUint(40);
     }
 
     async sendFirst(provider: ContractProvider, via: Sender) {
@@ -62,7 +62,7 @@ export class Task3 implements Contract {
             sendMode: SendMode.PAY_GAS_SEPARATELY,
             body: beginCell()
             .storeUint(0, 32)
-            .storeMaybeRef(c1)
+            .storeMaybeRef()
             .storeDict(Dictionary.empty())
             .storeMaybeRef(beginCell().endCell())
             .endCell(),
@@ -112,25 +112,28 @@ export class Task3 implements Contract {
         });
     }
     async sendV3(provider: ContractProvider, via: Sender) {
+        const dic = Dictionary.empty({
+            bits: 32, parse: (src) => src, serialize: (src) => src
+        },{
+            serialize: (src: any, builder) => builder.storeSlice(src.beginParse()), 
+            parse: (slice) => ({
+                new_version: slice.loadUint(32),
+                mig: slice.loadMaybeRef(),
+            }),
+        })
+            .set(1n, beginCell().storeUint(2, 32).storeMaybeRef().endCell())
+            .set(2n, beginCell().storeUint(3, 32).storeMaybeRef(c3).endCell())
+            // .set(3n, beginCell().storeUint(3n, 32).storeMaybeRef(beginCell().endCell()).endCell());
+
+            const slice = dic.get(2n).asSlice();
+             console.log('dic', slice.loadUint(32), slice.loadMaybeRef().equals(c3));
         await provider.internal(via, {
             value: toNano(0.1),
             sendMode: SendMode.PAY_GAS_SEPARATELY,
             body: beginCell()
-            .storeUint(3, 32)
+            .storeUint(3n, 32)
             .storeMaybeRef(c3)
-            .storeDict(Dictionary.empty({
-                bits: 32, parse: (src) => src, serialize: (src) => src
-            },{
-                serialize: (src: any, builder) => builder.storeSlice(src.beginParse()), 
-                parse: (slice) => ({
-                    new_version: slice.loadUint(32),
-                    mig: slice.loadMaybeRef(),
-                }),
-            })
-                .set(1n, beginCell().storeUint(2, 32).storeMaybeRef().endCell())
-                .set(2n, beginCell().storeUint(3, 32).storeMaybeRef(c3).endCell())
-                // .set(3n, beginCell().storeUint(3n, 32).storeMaybeRef(beginCell().endCell()).endCell())
-            )
+            .storeDict(dic)
             .storeRef(beginCell().storeUint(100, 40).endCell())
             .endCell(),
         });
