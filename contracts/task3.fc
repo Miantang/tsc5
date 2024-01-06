@@ -34,11 +34,11 @@
         ;;     set_code(new_code);
         ;; }
 
-        ;; slice ds = get_data().begin_parse();
-        ;; cell storage = ds~load_ref();
-        ;; ;; ~dump(storage);
+        slice ds = get_data().begin_parse();
+        cell storage = ds~load_ref();
+        ;; ~dump(storage);
         ;; storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
-        ;; set_data(wrap_storage(1, storage, new_dict())); 
+        set_data(wrap_storage(1, storage, new_dict())); 
         return ();
     }
 
@@ -50,6 +50,7 @@
 
     slice ds = get_data().begin_parse();
     int current_version = ds~load_uint(32);
+    cell storage = ds~load_ref();
     ;; ~dump(current_version);
     throw_if(200, expected_version < current_version);
 
@@ -100,12 +101,6 @@
         return ();
     
     }
-
-    ;; ---
-    ;; here you should check if it's the first call or not based on `expected_version` as stated in the task
-    ;; if it is the first call, wrap the storage and finish execution by returning from the function
-    ;; ---
-
    
     if(expected_version == current_version) {
         ;; ;; if(~ new_code.cell_null?()) {
@@ -126,9 +121,12 @@
         ;; }
         
         ;; storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
-        ;; set_data(wrap_storage(current_version, storage, dict)); ;; -2 is just a random placeholder for the version
-        ;; return ();
+        ;; set_data(wrap_storage(current_version, storage, new_dict())); ;; -2 is just a random placeholder for the version
+        return ();
     }
+
+    storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
+    set_data(wrap_storage(current_version, storage, new_dict())); ;; -2 is just a random placeholder for the version
 
     return ();
 }
