@@ -43,8 +43,8 @@
     ;;     return ();
     ;; }
 
-    ;; slice ds = get_data().begin_parse();
-    ;; int current_version = ds~load_uint(32);
+    slice ds = get_data().begin_parse();
+    int current_version = ds~load_uint(32);
 
     ;; throw_if(200, expected_version < current_version);
 
