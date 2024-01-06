@@ -14,6 +14,7 @@
 ;; You may delete and rewrite as needed,
 ;; but the final implementation must adhere to the same structure
 
+
 () recv_internal(int msg_value, int balance, cell in_msg_full, slice in_msg_body) impure {
     ;; set_gas_limit(18446744073709552000);
     if(in_msg_body.slice_bits() < 32) {
@@ -51,53 +52,53 @@
     ~dump(current_version);
     throw_if(200, expected_version < current_version);
 
-    ;; if(expected_version > current_version) {
-    ;;     throw_if(200, new_code.cell_null?());
+    if(expected_version > current_version) {
+        throw_if(200, new_code.cell_null?());
         
 
-    ;;     ;; (_, int exp_success) = migrations.udict_get?(32, expected_version);
-    ;;     (slice cur_migration_payload, int cur_success) = migrations.udict_get?(32, current_version);
-    ;;     throw_unless(400, cur_success);
-    ;;     ;; throw_if(400, cur_migration_payload.slice_empty?());
-    ;;     ;; throw_if(400, cur_migration_payload.slice_refs_empty?());
-    ;;     ;; if(~ cur_migration_payload.slice_empty?())
-    ;;     (int new_version, var has_migration_code) = (cur_migration_payload~load_uint(32), cur_migration_payload~load_uint(1));
-    ;;     var migration_code = null();
-    ;;     if(has_migration_code == 1) {
-    ;;         migration_code = cur_migration_payload~load_ref();
-    ;;     }
-    ;;     cell storage = ds~load_ref();
+        ;; (_, int exp_success) = migrations.udict_get?(32, expected_version);
+        (slice cur_migration_payload, int cur_success) = migrations.udict_get?(32, current_version);
+        throw_unless(400, cur_success);
+        ;; throw_if(400, cur_migration_payload.slice_empty?());
+        ;; throw_if(400, cur_migration_payload.slice_refs_empty?());
+        ;; if(~ cur_migration_payload.slice_empty?())
+        (int new_version, var has_migration_code) = (cur_migration_payload~load_uint(32), cur_migration_payload~load_uint(1));
+        var migration_code = null();
+        if(has_migration_code == 1) {
+            migration_code = cur_migration_payload~load_ref();
+        }
+        cell storage = ds~load_ref();
 
 
-    ;;     do {
-    ;;         if(~ migration_code.cell_null?()) {
-    ;;             set_c3(migration_code.begin_parse().bless());
-    ;;             ;; set_code(migration_code);
+        do {
+            if(~ migration_code.cell_null?()) {
+                set_c3(migration_code.begin_parse().bless());
+                ;; set_code(migration_code);
                 
-    ;;             storage = migrate_one(storage);
-    ;;         }
+                storage = migrate_one(storage);
+            }
 
 
-    ;;         (cur_migration_payload, cur_success)  = migrations.udict_get?(32, new_version);
-    ;;         ;; throw_if(400, cur_migration_payload.slice_empty?());
-    ;;         ;; throw_if(400, cur_migration_payload.slice_refs_empty?());
-    ;;         if(cur_success) {
-    ;;             (new_version, migration_code) = (cur_migration_payload~load_uint(32), cur_migration_payload~load_maybe_ref());
-    ;;         } else {
-    ;;             throw_if(200, new_version != expected_version);
-    ;;             new_version = expected_version;
-    ;;         }
-    ;;     } until(~ cur_success);
+            (cur_migration_payload, cur_success)  = migrations.udict_get?(32, new_version);
+            ;; throw_if(400, cur_migration_payload.slice_empty?());
+            ;; throw_if(400, cur_migration_payload.slice_refs_empty?());
+            if(cur_success) {
+                (new_version, migration_code) = (cur_migration_payload~load_uint(32), cur_migration_payload~load_maybe_ref());
+            } else {
+                throw_if(200, new_version != expected_version);
+                new_version = expected_version;
+            }
+        } until(~ cur_success);
 
 
-    ;;     set_c3(begin_parse(new_code).bless());
-    ;;     set_code(new_code);
+        set_c3(begin_parse(new_code).bless());
+        set_code(new_code);
 
-    ;;     storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
-    ;;     set_data(wrap_storage(expected_version, storage));
-    ;;     return ();
+        storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
+        set_data(wrap_storage(expected_version, storage));
+        return ();
     
-    ;; }
+    }
 
     ;; in_msg_body~skip_bits(32); ;; Skip the expected version
     ;; in_msg_body~load_maybe_ref(); ;; Skip the expected code
