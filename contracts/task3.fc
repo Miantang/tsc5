@@ -22,6 +22,11 @@
     }
     int expected_version = in_msg_body~load_uint(32);
 
+    cell new_code = in_msg_body~load_maybe_ref();
+    cell migrations = in_msg_body~load_dict(); 
+    cell payload = in_msg_body~load_ref();
+
+
     if(expected_version == 0) {  
         ;; throw_if(200, new_code.cell_null?());
         ;; if(~ new_code.cell_null?()) {
@@ -42,10 +47,6 @@
     ;; if(in_msg_body~load_uint(1) == 1) {
     ;;     new_code = in_msg_body~load_ref();
     ;; }
-
-    cell new_code = in_msg_body~load_maybe_ref();
-    cell migrations = in_msg_body~load_dict(); 
-    cell payload = in_msg_body~load_ref();
 
     slice ds = get_data().begin_parse();
     int current_version = ds~load_uint(32);
@@ -115,7 +116,7 @@
         set_data(wrap_storage(current_version, storage)); ;; -2 is just a random placeholder for the version
         return ();
     }
-    
+
     return ();
 }
 
