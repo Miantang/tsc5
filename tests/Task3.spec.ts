@@ -40,18 +40,18 @@ describe('Task3', () => {
     //     // blockchain and task3 are ready to use
     // });
 
-    it('should v1', async () => {
-        const deployer = await blockchain.treasury('deployer');
-        const sender = deployer.getSender();
-        const m0 = await task3.sendFirst(sender);
-        const m = await task3.sendV1(sender);
-        const version = await task3.getVersion();
-        const ss = await task3.getStorage(32);
-        console.log('m', m.transactions, version, ss);
-        expect(m.transactions).toHaveTransaction({
-            success: true,
-        });
-    });
+    // it('should v1', async () => {
+    //     const deployer = await blockchain.treasury('deployer');
+    //     const sender = deployer.getSender();
+    //     const m0 = await task3.sendFirst(sender);
+    //     const m = await task3.sendV1(sender);
+    //     const version = await task3.getVersion();
+    //     const ss = await task3.getStorage(32);
+    //     console.log('m', m.transactions, version, ss);
+    //     expect(m.transactions).toHaveTransaction({
+    //         success: true,
+    //     });
+    // });
 
     // it('should v2', async () => {
     //     const deployer = await blockchain.treasury('deployer');
@@ -89,24 +89,24 @@ describe('Task3', () => {
     //     });
     // });
 
-    // it('should v4', async () => {
-    //     // the check is done inside beforeEach
-    //     // blockchain and task3 are ready to use
-    //     const deployer = await blockchain.treasury('deployer');
-    //     const sender = deployer.getSender();
-    //     const m0 = await task3.sendFirst(sender);
-    //     const version0 = await task3.getVersion();
-    //     console.log('version0', version0);
-    //     const m = await task3.sendV4(sender);
-    //     const version = await task3.getVersion();
-    //     const ss = await task3.getStorage();
-    //     // const am = await task3.getAmount();
-    //     // const usdam = await task3.getUSDAmount();
-    //     console.log('m', m.transactions, version, ss);
-    //     expect(m.transactions).toHaveTransaction({
-    //         success: true,
-    //     });
-    // });
+    it('should v4', async () => {
+        // the check is done inside beforeEach
+        // blockchain and task3 are ready to use
+        const deployer = await blockchain.treasury('deployer');
+        const sender = deployer.getSender();
+        const m0 = await task3.sendFirst(sender);
+        const version0 = await task3.getVersion();
+        console.log('version0', version0);
+        const m = await task3.sendV4(sender);
+        const version = await task3.getVersion();
+        const ss = await task3.getStorage();
+        // const am = await task3.getAmount();
+        // const usdam = await task3.getUSDAmount();
+        console.log('m', m.transactions, version, ss);
+        expect(m.transactions).toHaveTransaction({
+            success: true,
+        });
+    });
 
     // it('should v4 add', async () => {
     //     // const deployer = await blockchain.treasury('deployer');

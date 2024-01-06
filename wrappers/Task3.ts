@@ -160,7 +160,7 @@ export class Task3 implements Contract {
             .storeUint(4n, 32)
             .storeMaybeRef(c4)
             .storeDict(dic)
-            .storeRef(beginCell().storeUint(num, 40).storeUint(num, 40).storeUint(num, 40).storeUint(num, 40).endCell())
+            .storeRef(beginCell().storeInt(num, 40).storeInt(num, 40).storeInt(-num, 40).storeInt(num, 40).endCell())
             .endCell(),
         });
     }
