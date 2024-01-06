@@ -30,14 +30,14 @@
 
     if(expected_version == 0) {  
         ;; throw_if(200, new_code.cell_null?());
-        if(~ new_code.cell_null?()) {
-            set_c3(new_code.begin_parse().bless());
-            set_code(new_code);
-        }
+        ;; if(~ new_code.cell_null?()) {
+        ;;     set_c3(new_code.begin_parse().bless());
+        ;;     set_code(new_code);
+        ;; }
 
         slice ds = get_data().begin_parse();
         cell storage = ds~load_ref();
-        storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
+        ;; storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
 
         set_data(wrap_storage(1, storage)); 
         return ();
