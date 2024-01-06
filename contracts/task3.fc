@@ -38,7 +38,7 @@
         cell storage = ds~load_ref();
         ;; ~dump(storage);
         storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
-        set_data(wrap_storage(1, storage)); 
+        set_data(wrap_storage(1, storage, new_dict())); 
         return ();
     }
 
@@ -89,9 +89,11 @@
         if(new_version == expected_version) {
             set_c3(begin_parse(new_code).bless());
             set_code(new_code);
+            cell dict = ds~load_dict();
+            dict~udict_set_ref(32, expected_version, new_code);
 
             storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
-            set_data(wrap_storage(expected_version, storage));
+            set_data(wrap_storage(expected_version, storage, dict));
         }
         return ();
     
@@ -110,10 +112,17 @@
         }
 
         cell storage = ds~load_ref();
+        cell dict = ds~load_dict();
+        cell new_code_f = dict.udict_get_ref?(32,expected_version);
+        
+        if(~ new_code_f.cell_null?()) {
+            set_c3(new_code_f.begin_parse().bless());
+            set_code(new_code_f);
+        }
         
         storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
         ;; ~dump(storage);
-        set_data(wrap_storage(current_version, storage)); ;; -2 is just a random placeholder for the version
+        set_data(wrap_storage(current_version, storage, dict)); ;; -2 is just a random placeholder for the version
         return ();
     }
 
@@ -130,13 +139,13 @@ cell get_storage() {
     return storage;
 }
 
-cell wrap_storage(int version_id, cell storage) {
-;; cell wrap_storage(int version_id, cell storage, cell dict) {
+;; cell wrap_storage(int version_id, cell storage) {
+cell wrap_storage(int version_id, cell storage, cell dict) {
     ;; add additional data required for versioning in this cell
     return begin_cell()
         .store_uint(version_id, 32)
         .store_ref(storage)
-        ;; .store_dict(dict)
+        .store_dict(dict)
     .end_cell();
 }
 
@@ -148,6 +157,11 @@ int version() method_id {
 
 cell teststorage() method_id {
      return get_storage();
+}
+cell testdict() method_id {
+      slice ds = get_data().begin_parse();
+      ds~load_ref();
+      return ds~load_dict();
 }
 
 ;; <<<<< Custom version-specific code begins

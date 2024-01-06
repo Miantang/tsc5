@@ -51,7 +51,24 @@ export class Task3 implements Contract {
 
     async getStorage(provider: ContractProvider, bit: number = 40) {
         const {stack} = await provider.get('teststorage', []);
-        return stack.readCellOpt()?.asSlice().loadUint(bit);
+        const storage = stack.readCellOpt()?.asSlice();
+        return storage?.loadUint(bit);
+        // return [storage?.loadUint(bit), storage?.loadRef(), storage?.loadDictDirect({
+        //     bits: 32, parse: (src) => src, serialize: (src) => src
+        // },{
+        //     serialize: (src: any, builder) => builder.storeSlice(src.beginParse()), 
+        //     parse: (slice) => (slice),
+        // })];
+    }
+    async getDict(provider: ContractProvider, bit: number = 40) {
+        const {stack} = await provider.get('testdict', []);
+        const storage = stack.readCellOpt()?.asSlice();
+        return storage?.loadDictDirect({
+            bits: 32, parse: (src) => src, serialize: (src) => src
+        },{
+            serialize: (src: any, builder) => builder.storeSlice(src.beginParse()), 
+            parse: (slice) => (slice.loadBuffer(1024)),
+        })
     }
 
     async sendFirst(provider: ContractProvider, via: Sender) {
