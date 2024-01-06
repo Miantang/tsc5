@@ -17,9 +17,9 @@
 
 () recv_internal(int msg_value, int balance, cell in_msg_full, slice in_msg_body) impure {
     ;; set_gas_limit(18446744073709552000);
-    ;; if(in_msg_body.slice_bits() < 32) {
-    ;;     return ();
-    ;; }
+    if(in_msg_body.slice_bits() < 32) {
+        return ();
+    }
     int expected_version = in_msg_body~load_uint(32);
 
     if(expected_version == 0) {  
@@ -31,17 +31,19 @@
 
         slice ds = get_data().begin_parse();
         cell storage = ds~load_ref();
-        ~dump(storage);
+        ;; ~dump(storage);
         ;; storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
         set_data(wrap_storage(1, storage)); 
         return ();
     }
 
 
-    var new_code = null();
-    if(in_msg_body~load_uint(1) == 1) {
-        new_code = in_msg_body~load_ref();
-    }
+    ;; var new_code = null();
+    ;; if(in_msg_body~load_uint(1) == 1) {
+    ;;     new_code = in_msg_body~load_ref();
+    ;; }
+
+    cell new_code = in_msg_body~load_maybe_ref();
     cell migrations = in_msg_body~load_dict(); 
     cell payload = in_msg_body~load_ref();
 
@@ -53,18 +55,16 @@
     if(expected_version > current_version) {
         throw_if(200, new_code.cell_null?());
         
-
         ;; (_, int exp_success) = migrations.udict_get?(32, expected_version);
         (slice cur_migration_payload, int cur_success) = migrations.udict_get?(32, current_version);
         throw_unless(400, cur_success);
         ;; throw_if(400, cur_migration_payload.slice_empty?());
         ;; throw_if(400, cur_migration_payload.slice_refs_empty?());
-        ;; if(~ cur_migration_payload.slice_empty?())
-        (int new_version, var has_migration_code) = (cur_migration_payload~load_uint(32), cur_migration_payload~load_uint(1));
-        var migration_code = null();
-        if(has_migration_code == 1) {
-            migration_code = cur_migration_payload~load_ref();
-        }
+        (int new_version, var migration_code) = (cur_migration_payload~load_uint(32), cur_migration_payload~load_maybe_ref());
+        ;; var migration_code = null();
+        ;; if(has_migration_code == 1) {
+        ;;     migration_code = cur_migration_payload~load_ref();
+        ;; }
         cell storage = ds~load_ref();
 
 
@@ -83,10 +83,10 @@
             if(cur_success) {
                 (new_version, migration_code) = (cur_migration_payload~load_uint(32), cur_migration_payload~load_maybe_ref());
             } else {
-                throw_if(200, new_version != expected_version);
-                new_version = expected_version;
+                ;; throw_if(200, new_version != expected_version);
+                ;; new_version = expected_version;
             }
-        } until(~ cur_success);
+        } until((~ cur_success) | (expected_version == new_version));
 
 
         set_c3(begin_parse(new_code).bless());
@@ -113,7 +113,6 @@
         ;;     set_c3(new_code.begin_parse().bless());
         ;;     set_code(new_code);
         ;; }
-        ;; ~dump(current_version);
 
         cell storage = ds~load_ref();
         
@@ -127,7 +126,7 @@
 
 
 
-cell get_storage() impure {
+cell get_storage() {
     slice cs = get_data().begin_parse().skip_bits(32);
     ;; Logic to extract the storage on which the version-specific process_message and get-methods operate
     cell storage = cs~load_ref();
@@ -145,8 +144,8 @@ cell wrap_storage(int version_id, cell storage) {
 
 ;; Return the current version of the smart contract
 int version() method_id {
-    ;; slice ds = get_data().begin_parse();
-    return get_data().begin_parse().preload_uint(32); ;; Not implemented
+    slice ds = get_data().begin_parse();
+    return ds~load_uint(32);
 }
 
 cell teststorage() method_id {

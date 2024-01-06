@@ -70,24 +70,24 @@ describe('Task3', () => {
     //     });
     // });
 
-    it('should v3', async () => {
-        // the check is done inside beforeEach
-        // blockchain and task3 are ready to use
-        const deployer = await blockchain.treasury('deployer');
-        const sender = deployer.getSender();
-        const m0 = await task3.sendFirst(sender);
-        const version0 = await task3.getVersion();
-        console.log('version0', version0);
-        const m = await task3.sendV3(sender);
-        const version = await task3.getVersion();
-        const ss = await task3.getStorage();
-        const am = await task3.getAmount();
-        const usdam = await task3.getUSDAmount();
-        console.log('m',  version, ss, am, usdam);
-        expect(m.transactions).toHaveTransaction({
-            success: true,
-        });
-    });
+    // it('should v3', async () => {
+    //     // the check is done inside beforeEach
+    //     // blockchain and task3 are ready to use
+    //     const deployer = await blockchain.treasury('deployer');
+    //     const sender = deployer.getSender();
+    //     const m0 = await task3.sendFirst(sender);
+    //     const version0 = await task3.getVersion();
+    //     console.log('version0', version0);
+    //     const m = await task3.sendV3(sender);
+    //     const version = await task3.getVersion();
+    //     const ss = await task3.getStorage();
+    //     const am = await task3.getAmount();
+    //     const usdam = await task3.getUSDAmount();
+    //     console.log('m',  version, ss, am, usdam);
+    //     expect(m.transactions).toHaveTransaction({
+    //         success: true,
+    //     });
+    // });
 
     // it('should v4', async () => {
     //     // the check is done inside beforeEach
@@ -112,37 +112,35 @@ describe('Task3', () => {
     //     // const deployer = await blockchain.treasury('deployer');
     //     const sender = deployer.getSender();
     //     const m0 = await task3.sendFirst(sender);
-    //     const version0 = await task3.getVersion();
-    //     console.log('version0', version0);
+    //     console.log('version0', await task3.getVersion(), await task3.getStorage(32));
     //     const m = await task3.sendV4(sender);
-    //     console.log('version1', version0);
+    //     console.log('version1', await task3.getVersion(), await task3.getStorage());
     //     const m2 = await task3.sendNoCode(sender, 200);
-    //     const version = await task3.getVersion();
-    //     const ss = await task3.getStorage(32);
+    //     console.log('version2', await task3.getVersion(), await task3.getStorage());
+    //     const m3 = await task3.sendV3(sender);
+    //     console.log('version3', await task3.getVersion(), await task3.getStorage());
     //     // const am = await task3.getAmount();
     //     // const usdam = await task3.getUSDAmount();
-    //     console.log('m',m.transactions, version, ss);
-    //     expect(m.transactions).toHaveTransaction({
+    //     // console.log('m3.transactions', m3.transactions);
+    //     expect(m3.transactions).toHaveTransaction({
     //         success: true,
     //     });
     // });
 
-    // it('should v more', async () => {
-    //     const deployer = await blockchain.treasury('deployer');
-    //     const sender = deployer.getSender();
-    //     const m0 = await task3.sendFirst(sender);
-    //     const version0 = await task3.getVersion();
-    //     console.log('version0', version0);
-    //     const m2 = await task3.sendNoCode(sender, 200);
-    //     const version = await task3.getVersion();
-    //     const ss = await task3.getStorage(32);
-    //     // const am = await task3.getAmount();
-    //     // const usdam = await task3.getUSDAmount();
-    //     console.log('m', m2.transactions, version, ss);
-    //     expect(m2.transactions).toHaveTransaction({
-    //         success: true,
-    //     });
-    // });
+    it('should v more', async () => {
+        const deployer = await blockchain.treasury('deployer');
+        const sender = deployer.getSender();
+        const m0 = await task3.sendFirst(sender);
+        console.log('version0', await task3.getVersion(), await task3.getStorage(32));
+        const m2 = await task3.sendNoCode(sender, 200);
+        console.log('version1', await task3.getVersion(), await task3.getStorage(32));
+        // const am = await task3.getAmount();
+        // const usdam = await task3.getUSDAmount();
+        console.log('m2.transactions', m2.transactions);
+        expect(m2.transactions).toHaveTransaction({
+            success: true,
+        });
+    });
 
     
 });
