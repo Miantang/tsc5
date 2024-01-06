@@ -51,3 +51,7 @@ int get_USD_amount() method_id {
 ;; v3's code is going to read it as *unsigned* integer and treat as 1099511627676,
 ;; thus producing completely incorrect results.
 ;; That is why it is absolutely unacceptable to process message intended for one version by another version.
+
+cell migrate_one(cell old_storage) { ;; it's just a placeholder that is required for correct compilation
+    return old_storage;
+}

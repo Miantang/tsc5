@@ -31,12 +31,13 @@ int one(int x, int y) inline {
 
 int get?(cell dict, int key_len, int index) inline {
     (slice step_slice, int success) = dict.udict_get?(key_len, index);
-    if(~ success) {
-        return -2;
+    if(success) {
+        (_, int step) = step_slice.load_uint(44);
+        return step & 0xffffffff; ;;
     }
+    return -2;
     ;; (_, int step) = step_slice.skip_bits(12).load_uint(32);
-    (_, int step) = step_slice.load_uint(44);
-    return step & 0xffffffff; ;;
+    
     ;; (slice x, int m) = dict.u_get?(key_len, index);
     ;; if(m != 0) {
     ;;     ;; (_, int step) = step_slice.skip_bits(12).load_uint(32);
@@ -55,11 +56,11 @@ tuple attach(tuple originMaze, cell come_from, int startxy, int endxy) inline {
         (slice xy_slice, int success) = come_from.udict_get?(12, pointer);
         int xy = xy_slice~load_uint(12);
         (int x, int y) = point(xy);
-        if((xy != 3636) & (xy != startxy)) {
+        if(xy != startxy) {
             originMaze~tset(x, originMaze.g(x).tset(y, 33));
         }
         pointer = xy;
-    } until (pointer == 3636);
+    } until (pointer == startxy);
 
     return originMaze;
 }
@@ -115,8 +116,6 @@ int combine(int stone, int prob, int step, int xy, int endxy) inline {
 
 ;; S 83  E69 X88  .46  ?63 !33
 (int, int, int, tuple) solve(int n, int m, tuple maze) method_id {
-    ;; set_gas_limit(1208925819614629174706176);
-    set_gas_limit(18446744073709552000);
     tuple dx = to_tuple([1, 1, 0, -1, -1, -1, 0, 1]);
     tuple dy = to_tuple([0, -1, -1, -1, 0, 1, 1, 1]);
     int S = null();
@@ -163,7 +162,7 @@ int combine(int stone, int prob, int step, int xy, int endxy) inline {
         }
 
         int dIndex = 0;
-        while(dIndex < 8) {
+        repeat(8) {
             (int nx, int ny) = point_move(cur, dx.g(dIndex), dy.g(dIndex)); ;; 新坐标
             if ((0 <= nx) & (nx < n) & ( 0 <= ny) & (ny < m)) { ;; 迷宫内的坐标
 
@@ -171,22 +170,19 @@ int combine(int stone, int prob, int step, int xy, int endxy) inline {
                 int character = maze.g(nx).g(ny);
 
                 (int stone, int prob, int step) = split(come_from.get?(12, cur));
-                int nextWillCost = combine(stone + (character == 88 ? 1 : 0), prob + (character == 63 ? 1 : 0), step + 1, p, E);
+                int nextWillCost = combine(stone - (character == 88), prob - (character == 63), step + 1, p, E);
 
                 int nextCost = come_from.get?(12, p); 
                 
                 if((nextCost == -2) | (nextWillCost < nextCost)) { ;; nextCost == -2 表示 not success
-                    if((character == 46) | (character == 69) | (character == 63) | (character == 88)) { ;; . E
-                        ;; queue~tpush(p);
-                        int nextWillCost_withIndex = nextWillCost;
-                        int added = queue_dict~udict_add_builder?(32, nextWillCost_withIndex, begin_cell().store_uint(p, 12));
-                        while(~ added) {
-                            nextWillCost_withIndex += 1;
-                            added = queue_dict~udict_add_builder?(32, nextWillCost_withIndex, begin_cell().store_uint(p, 12));
-                        }
-                        ;; queue_dict~udict_set_builder(32, nextWillCost, begin_cell().store_uint(p, 12));
-                        come_from~udict_set_builder(12, p, begin_cell().store_uint(cur, 12).store_uint(nextWillCost, 32));
+                    ;; queue~tpush(p);
+                    int nextWillCost_withIndex = nextWillCost;
+                    while(~ queue_dict~udict_add_builder?(32, nextWillCost_withIndex, begin_cell().store_uint(p, 12))) {
+                        nextWillCost_withIndex += 1;
+                        ;; added = queue_dict~udict_add_builder?(32, nextWillCost_withIndex, begin_cell().store_uint(p, 12));
                     }
+                    ;; queue_dict~udict_set_builder(32, nextWillCost, begin_cell().store_uint(p, 12));
+                    come_from~udict_set_builder(12, p, begin_cell().store_uint(cur, 12).store_uint(nextWillCost, 32));
                 }
 
             }

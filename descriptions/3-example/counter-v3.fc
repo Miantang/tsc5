@@ -26,6 +26,12 @@ int get_USD_amount() method_id {
 	;; so to get a USD amount now, we need to divide it by 100
 }
 
+cell migrate_one(cell old_storage) {
+    slice cs = old_storage.begin_parse();
+    int amount_USD = cs.preload_uint(32);
+    int amount_cents = amount_USD * 100;
+    return begin_cell().store_uint(amount_cents, 40).end_cell();
+}
 ;; Note how storage format changed:
 ;; - from v2 (which used 32 bits to represent amount in USD)
 ;; - to v3 (which uses 40 bits to represent amount in cents)

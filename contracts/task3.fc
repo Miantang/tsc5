@@ -33,7 +33,7 @@
         cell storage = ds~load_ref();
         ~dump(storage);
 
-        ;; storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
+        storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
 
         set_data(wrap_storage(1, storage)); 
         return ();
@@ -108,6 +108,7 @@
     ;; here you should check if it's the first call or not based on `expected_version` as stated in the task
     ;; if it is the first call, wrap the storage and finish execution by returning from the function
     ;; ---
+
    
     if(expected_version == current_version) {
         ;; if(~ new_code.cell_null?()) {
@@ -128,7 +129,7 @@
 
 
 
-cell get_storage() {
+cell get_storage() impure {
     slice cs = get_data().begin_parse().skip_bits(32);
     ;; Logic to extract the storage on which the version-specific process_message and get-methods operate
     cell storage = cs~load_ref();

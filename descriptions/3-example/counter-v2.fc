@@ -24,6 +24,10 @@ int get_USD_amount() method_id {
     return get_amount();
 }
 
+cell migrate_one(cell old_storage) { ;; it's just a placeholder that is required for correct compilation
+    return old_storage;
+}
+
 ;; Note:
 ;; Counter storage format didn't change, same 32 bits
 ;; Two get-methods were added

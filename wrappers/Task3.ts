@@ -11,7 +11,7 @@ export type Task3Config = {};
 
 export function task3ConfigToCell(config: Task3Config): Cell {
     return beginCell()
-    .storeRef(beginCell().storeUint(77, 32).endCell())
+    .storeRef(beginCell().storeUint(80, 32).endCell())
     .endCell();
 }
 
@@ -105,7 +105,7 @@ export class Task3 implements Contract {
             .storeUint(2, 32)
             .storeMaybeRef(c2)
             .storeDict(dic)
-            .storeRef(beginCell().storeUint(7, 32).endCell())
+            .storeRef(beginCell().storeUint(2, 32).endCell())
             .endCell(),
         });
     }

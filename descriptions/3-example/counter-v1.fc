@@ -9,3 +9,7 @@ cell process_message(cell storage, int msg_value, int balance, cell in_msg_full,
     int current_amount = cs.preload_uint(32);
     return begin_cell().store_uint(current_amount + 1, 32).end_cell();
 }
+
+cell migrate_one(cell old_storage) { ;; it's just a placeholder that is required for correct compilation
+    return old_storage;
+}
