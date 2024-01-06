@@ -114,7 +114,7 @@ describe('Task3', () => {
         const m0 = await task3.sendFirst(sender);
         console.log('version0', await task3.getVersion(), await task3.getStorage(32));
         const m = await task3.sendV4(sender);
-        console.log('version1', await task3.getVersion(), await task3.getStorage());
+        console.log('version1', await task3.getVersion(), await task3.getStorage(), m.transactions);
         const m2 = await task3.sendNoCode(sender, 200);
         console.log('version2', await task3.getVersion(), await task3.getStorage());
         const m3 = await task3.sendV3(sender);
