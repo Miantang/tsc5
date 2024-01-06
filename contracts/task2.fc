@@ -14,8 +14,8 @@
     if (in_msg.slice_bits() < 32) { ;; ignore empty messages
         return ();
     }
-    var (op, query_id) = (in_msg~load_uint(32), in_msg~load_uint(64));
-
+    ;; var (op, query_id) = (in_msg~load_uint(64));
+    var op = in_msg~load_uint(32);
     var ds = get_data().begin_parse(); ;; get data from storage and convert it into a slice to be able to read values
     var admin_address = ds~load_msg_addr();
     cell users = ds~load_dict();
@@ -29,6 +29,7 @@
         throw_if(120, ~ equal_slices(sender_address, admin_address));
         
         ;; throw_if(122, users.dict_empty?());
+        in_msg~load_uint(64);
         slice addressInt = in_msg~load_msg_addr();
         int share = in_msg~load_uint(32);
         (int workchain, int addressHash) = parse_std_addr(addressInt);
@@ -43,6 +44,7 @@
 
     if(op == 0x278205c8) {
         throw_if(120, ~ equal_slices(sender_address, admin_address));
+        in_msg~load_uint(64);
         slice addressInt = in_msg~load_msg_addr();
         (int workchain, int addressHash) = parse_std_addr(addressInt);
          
@@ -93,24 +95,21 @@
     ;; https://github.com/romanovichim/TonFunClessons_Eng/blob/main/lessons/smartcontract/9lesson/ninthlesson.md
     if(op == 0x7362d09c) {
         throw_if(122, users.dict_empty?());
+        int query_id = in_msg~load_uint(64);
         int amount = in_msg~load_coins();
 
         (int key, slice val, int success) = users.udict_get_min?(256);
         int total_share = val~load_uint(32);
         while (success) {
             ;; do something with pair key->val
+            total_share += val~load_uint(32);
             (key, val, success) = users.udict_get_next?(256, key);
-            if (success) {
-                int share = val~load_uint(32);
-                total_share += share;
-            }
         }
 
        {
          (int key, slice val, int success) = users.udict_get_min?(256);
-        do {
-            if (success) {
-                slice userAddr = get_serialized_address(key);
+        while(success) {
+            slice userAddr = get_serialized_address(key);
                 int share = val~load_uint(32);
                 int jetton_amount = muldiv(share, amount, total_share);
 
@@ -132,9 +131,9 @@
                     .store_ref(msg_body.end_cell());
                 
                 send_raw_message(transfer_msg.end_cell(), 1); ;; revert on errors
-            }
+
             (key, val, success) = users.udict_get_next?(256, key);
-        } until (~ success);
+        }
        }
 
         return ();
