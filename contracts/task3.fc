@@ -32,7 +32,7 @@
         slice ds = get_data().begin_parse();
         cell storage = ds~load_ref();
         ;; ~dump(storage);
-        ;; storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
+        storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
         set_data(wrap_storage(1, storage)); 
         return ();
     }
@@ -49,22 +49,19 @@
 
     slice ds = get_data().begin_parse();
     int current_version = ds~load_uint(32);
-    ~dump(current_version);
+    ;; ~dump(current_version);
     throw_if(200, expected_version < current_version);
 
     if(expected_version > current_version) {
+
         throw_if(200, new_code.cell_null?());
+        throw_if(200, migrations.dict_empty?());
         
-        ;; (_, int exp_success) = migrations.udict_get?(32, expected_version);
         (slice cur_migration_payload, int cur_success) = migrations.udict_get?(32, current_version);
         throw_unless(400, cur_success);
         ;; throw_if(400, cur_migration_payload.slice_empty?());
         ;; throw_if(400, cur_migration_payload.slice_refs_empty?());
         (int new_version, var migration_code) = (cur_migration_payload~load_uint(32), cur_migration_payload~load_maybe_ref());
-        ;; var migration_code = null();
-        ;; if(has_migration_code == 1) {
-        ;;     migration_code = cur_migration_payload~load_ref();
-        ;; }
         cell storage = ds~load_ref();
 
 
@@ -88,19 +85,16 @@
             }
         } until((~ cur_success) | (expected_version == new_version));
 
+        if(new_version == expected_version) {
+            set_c3(begin_parse(new_code).bless());
+            set_code(new_code);
 
-        set_c3(begin_parse(new_code).bless());
-        set_code(new_code);
-
-        storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
-        set_data(wrap_storage(expected_version, storage));
+            storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
+            set_data(wrap_storage(expected_version, storage));
+        }
         return ();
     
     }
-
-    ;; in_msg_body~skip_bits(32); ;; Skip the expected version
-    ;; in_msg_body~load_maybe_ref(); ;; Skip the expected code
-    ;; in_msg_body~load_dict(); ;; Skip migrations
 
     ;; ---
     ;; here you should check if it's the first call or not based on `expected_version` as stated in the task
@@ -121,6 +115,7 @@
         set_data(wrap_storage(current_version, storage)); ;; -2 is just a random placeholder for the version
         return ();
     }
+    
     return ();
 }
 
