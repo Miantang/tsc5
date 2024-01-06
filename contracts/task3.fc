@@ -27,7 +27,7 @@
     cell payload = in_msg_body~load_ref();
 
 
-    if(expected_version == 0) {  
+    if (expected_version == 0) {  
         ;; throw_if(200, new_code.cell_null?());
         ;; if(~ new_code.cell_null?()) {
         ;;     set_c3(new_code.begin_parse().bless());
@@ -91,6 +91,8 @@
             set_code(new_code);
             cell dict = ds~load_dict();
             dict~udict_set_ref(32, expected_version, new_code);
+            ;; ~dump(expected_version);
+            ;; ~dump(new_code);
 
             storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
             set_data(wrap_storage(expected_version, storage, dict));
@@ -106,14 +108,17 @@
 
    
     if(expected_version == current_version) {
-        if(~ new_code.cell_null?()) {
-            set_c3(new_code.begin_parse().bless());
-            set_code(new_code);
-        }
+        ;; if(~ new_code.cell_null?()) {
+        ;;     set_c3(new_code.begin_parse().bless());
+        ;;     set_code(new_code);
+        ;; }
 
         cell storage = ds~load_ref();
         cell dict = ds~load_dict();
         (cell new_code_f, int success) = dict.udict_get_ref?(32,expected_version);
+        ;; ~dump(dict);
+        ;; ~dump(expected_version);
+        ;; ~dump(new_code_f);
 
         if(success) {
             set_c3(new_code_f.begin_parse().bless());
@@ -121,7 +126,6 @@
         }
         
         storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
-        ;; ~dump(storage);
         set_data(wrap_storage(current_version, storage, dict)); ;; -2 is just a random placeholder for the version
         return ();
     }
@@ -174,7 +178,7 @@ cell testdict() method_id {
 cell process_message(cell storage, int msg_value, int balance, cell in_msg_full, slice in_msg_body) impure {
     slice cs = storage.begin_parse();
     int current_amount = cs.preload_uint(32);
-    ~dump(current_amount);
+    ;; ~dump(current_amount);
     return begin_cell().store_uint(current_amount + 1, 32).end_cell();
 }
 
