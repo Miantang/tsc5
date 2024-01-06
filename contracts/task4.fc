@@ -35,7 +35,7 @@ int get?(cell dict, int key_len, int index) inline {
         (_, int step) = step_slice.load_uint(44);
         return step & 0xffffffff; ;;
     }
-    return -2;
+    return 0xffffffff;
     ;; (_, int step) = step_slice.skip_bits(12).load_uint(32);
     
     ;; (slice x, int m) = dict.u_get?(key_len, index);
@@ -65,21 +65,13 @@ tuple attach(tuple originMaze, cell come_from, int startxy, int endxy) inline {
     return originMaze;
 }
 
-int combine(int stone, int prob, int step, int xy, int endxy) inline {
+int chebyshev_distance(int x1, int x2, int y1, int y2) inline {
     ;; 当前点到 终点的最近距离 Chebyshev distance
-    (int x, int y) = point(xy);
-    (int endx, int endy) = point(endxy);
-    int dx = endx - x;
-    int dy = endy - y;
-    if(dx < 0) {
-        dx = - dx;
-    }
-    if(dy < 0) {
-        dy = - dx;
-    }
-    int dis = max(dx, dy); ;; gas 26
-    return  stone * 100000000 + prob * 1000000 + step * 1000 + dis * 10;
-    ;; return  stone * 10000000 + prob * 100000 + step * 100 + dis;
+    return max(abs(y2 - y1), abs(x2 - x1));
+
+}
+int combine(int stone, int prob, int step) inline {
+    return  stone * 100000000 + prob * 1000000 + step * 1000;
 }
 
 (int, int, int) split(int num) inline {
@@ -118,37 +110,45 @@ int combine(int stone, int prob, int step, int xy, int endxy) inline {
 (int, int, int, tuple) solve(int n, int m, tuple maze) method_id {
     tuple dx = to_tuple([1, 1, 0, -1, -1, -1, 0, 1]);
     tuple dy = to_tuple([0, -1, -1, -1, 0, 1, 1, 1]);
-    int S = null();
+
+    ;; int S = null();
+    int sx = -1;
+    int sy = -1;
     int E = null();
+    int ex = -1;
+    int ey = -1;
 
     ;; 40405gas
     int findN = 0; 
-    int findedS = 0;
-    int findedE = 0;
-    while(((findedS != -1) | (findedE != -1)) & (findN < n)) {
+    while(((sx == -1) | (ex == -1)) & (findN < n)) {
         tuple line = maze.g(findN);
         int findM = 0;
-        while(((findedS != -1) | (findedE != -1)) & (findM < m)) {
+        while(((sx == -1) | (ex == -1)) & (findM < m)) {
             int char = line.g(findM);
              if(char == 83) {
-                S = one(findN, findM);
-                findedS = -1;
+                sx = findN;
+                sy = findM;
+                ;; S = one(findN, findM);
             }
             if(char == 69) {
+                ex = findN;
+                ey = findM;
                 E = one(findN, findM);
-                findedE = -1;
             }
             findM += 1;
         }
         findN += 1;
     }
 
-    ;; tuple queue = to_tuple([S]);
     cell queue_dict = new_dict();
     cell come_from = new_dict();
-    int cost = combine(0, 0, 0, S, E);
+    int cost = chebyshev_distance(ex,sx,ey,sy);
+    int S = one(sx, sy);
+    ;; ~dump(S);
+    ;; ~dump(E);
     come_from~udict_set_builder(12, S, begin_cell().store_uint(3636, 12).store_uint(cost, 32));
     queue_dict~udict_set_builder(32, cost, begin_cell().store_uint(S, 12));
+    ;; ~dump(queue_dict);
 
     ;; while(queue.tlen() != 0) {
     ;;     int cur = queue~unshiftIter(come_from);
@@ -163,26 +163,27 @@ int combine(int stone, int prob, int step, int xy, int endxy) inline {
 
         int dIndex = 0;
         repeat(8) {
-            (int nx, int ny) = point_move(cur, dx.g(dIndex), dy.g(dIndex)); ;; 新坐标
+            int ny = dy.g(dIndex) + y;
+            int nx = dx.g(dIndex) + x;
             if ((0 <= nx) & (nx < n) & ( 0 <= ny) & (ny < m)) { ;; 迷宫内的坐标
 
                 int p = one(nx, ny);
                 int character = maze.g(nx).g(ny);
 
-                (int stone, int prob, int step) = split(come_from.get?(12, cur));
-                int nextWillCost = combine(stone - (character == 88), prob - (character == 63), step + 1, p, E);
+                int thisCost = come_from.get?(12, cur); ;; g(x)
+                ;; f(x) = g(x) + h(x)
+                int nextWillCost = thisCost + chebyshev_distance(nx, ex, ny, ey) + combine(- (character == 88), - (character == 63), 1);
 
                 int nextCost = come_from.get?(12, p); 
                 
-                if((nextCost == -2) | (nextWillCost < nextCost)) { ;; nextCost == -2 表示 not success
+                if(nextWillCost < nextCost) { ;; nextCost == -2 表示 not success
                     ;; queue~tpush(p);
+                    come_from~udict_set_builder(12, p, begin_cell().store_uint(cur, 12).store_uint(nextWillCost, 32));
+
                     int nextWillCost_withIndex = nextWillCost;
                     while(~ queue_dict~udict_add_builder?(32, nextWillCost_withIndex, begin_cell().store_uint(p, 12))) {
                         nextWillCost_withIndex += 1;
-                        ;; added = queue_dict~udict_add_builder?(32, nextWillCost_withIndex, begin_cell().store_uint(p, 12));
                     }
-                    ;; queue_dict~udict_set_builder(32, nextWillCost, begin_cell().store_uint(p, 12));
-                    come_from~udict_set_builder(12, p, begin_cell().store_uint(cur, 12).store_uint(nextWillCost, 32));
                 }
 
             }

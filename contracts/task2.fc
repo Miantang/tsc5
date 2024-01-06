@@ -1,15 +1,11 @@
 #include "imports/stdlib.fc";
 
-const ADDUSER = 0x368ddef3;
-const REMOVEUSER = 0x278205c8;
-const SPLIT = 0x068530b3;
-const TRANSFER = 0x7362d09c;
-
-(slice) get_serialized_address(int workchain, int address) inline {
+(slice) get_serialized_address(int address) inline {
     return (begin_cell()
-        .store_uint(2, 2)  ;; Is std address
-        .store_uint(0, 1)  ;; Non-unicast
-        .store_uint(workchain, 8)  ;; Basic workchain
+        ;; .store_uint(2, 2)  ;; Is std address
+        ;; .store_uint(0, 1)  ;; Non-unicast
+        ;; .store_uint(workchain, 8)  ;; Basic workchain
+        .store_uint(1024, 11)
         .store_uint(address, 256) ;; Address hash
     ).end_cell().begin_parse();
 }
@@ -29,7 +25,7 @@ const TRANSFER = 0x7362d09c;
  
     slice sender_address = cs~load_msg_addr();
 
-    if(op == ADDUSER) {
+    if(op == 0x368ddef3) {
         throw_if(120, ~ equal_slices(sender_address, admin_address));
         
         ;; throw_if(122, users.dict_empty?());
@@ -45,7 +41,7 @@ const TRANSFER = 0x7362d09c;
         return ();
     }
 
-    if(op == REMOVEUSER) {
+    if(op == 0x278205c8) {
         throw_if(120, ~ equal_slices(sender_address, admin_address));
         slice addressInt = in_msg~load_msg_addr();
         (int workchain, int addressHash) = parse_std_addr(addressInt);
@@ -60,7 +56,7 @@ const TRANSFER = 0x7362d09c;
         return ();
     }
 
-    if(op == SPLIT) {
+    if(op == 0x068530b3) {
         throw_if(122, users.dict_empty?());
         ;; throw_if(120, ~ equal_slices(sender_address, admin_address));
        (int key, slice val, int success) = users.udict_get_min?(256);
@@ -82,7 +78,7 @@ const TRANSFER = 0x7362d09c;
                     int ton_to_send = muldiv(share, msg_value, total_share);
                      cell msg = begin_cell()
                         .store_uint(0x18, 6) ;; flags
-                        .store_slice(get_serialized_address(0, key)) ;; destination address
+                        .store_slice(get_serialized_address(key)) ;; destination address
                         .store_coins(ton_to_send) 
                         .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1) ;; default message headers (see sending messages page)
                     .end_cell();
@@ -95,7 +91,7 @@ const TRANSFER = 0x7362d09c;
         return ();
     }
     ;; https://github.com/romanovichim/TonFunClessons_Eng/blob/main/lessons/smartcontract/9lesson/ninthlesson.md
-    if(op == TRANSFER) {
+    if(op == 0x7362d09c) {
         throw_if(122, users.dict_empty?());
         int amount = in_msg~load_coins();
 
@@ -114,7 +110,7 @@ const TRANSFER = 0x7362d09c;
          (int key, slice val, int success) = users.udict_get_min?(256);
         do {
             if (success) {
-                slice userAddr = get_serialized_address(0, key);
+                slice userAddr = get_serialized_address(key);
                 int share = val~load_uint(32);
                 int jetton_amount = muldiv(share, amount, total_share);
 
@@ -149,8 +145,8 @@ const TRANSFER = 0x7362d09c;
 
 
 cell get_users() method_id {
-    var ds = get_data().begin_parse(); ;; get data from storage and convert it into a slice to be able to read values
-    slice addr = ds~load_msg_addr();
+    var ds = get_data().begin_parse().skip_bits(267); ;; get data from storage and convert it into a slice to be able to read values
+    ;; ds~load_msg_addr();
     ;; int epyt = ds~load_uint(1);
     return ds~load_dict();
     ;; return ds.preload_dict();
@@ -158,10 +154,10 @@ cell get_users() method_id {
 
 int get_user_share(slice user_address) method_id {
     var ds = get_data().begin_parse(); ;; get data from storage and convert it into a slice to be able to read values
-    slice addr = ds~load_msg_addr();
+    ds~load_msg_addr();
     var users = ds~load_dict();
-    (int workchain, int addressHash) = parse_std_addr(user_address);
-    (slice share_s, int success) = users.udict_get?(256, addressHash);
+    (_, int addressHash) = parse_std_addr(user_address);
+    (slice share_s, _) = users.udict_get?(256, addressHash);
     return share_s~load_uint(32);
     ;; return 1;
 }

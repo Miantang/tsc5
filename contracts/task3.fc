@@ -33,7 +33,7 @@
         cell storage = ds~load_ref();
         ~dump(storage);
 
-        storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
+        ;; storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
 
         set_data(wrap_storage(1, storage)); 
         return ();
@@ -164,7 +164,6 @@ cell teststorage() method_id {
 ;; from counter-v0.fc
 cell process_message(cell storage, int msg_value, int balance, cell in_msg_full, slice in_msg_body) impure {
     slice cs = storage.begin_parse();
-    ~dump(cs);
     int current_amount = cs.preload_uint(32);
     ~dump(current_amount);
     return begin_cell().store_uint(current_amount + 1, 32).end_cell();
