@@ -10,8 +10,6 @@ forall X -> (tuple) to_tuple (X x) asm "NOP";
 forall X -> X g(tuple t, int k) asm(t k) "INDEXVAR";
 forall X -> tuple s(tuple t, int k, X x) asm(t x k) "SETINDEXVAR";
 
-(slice, int) u_get?(cell dict, int key_len, int index) asm(index dict key_len) "DICTUGET";
-
 () recv_internal() impure {
 
 }
@@ -49,11 +47,16 @@ int get?(cell dict, int key_len, int index) inline {
     
 }
 
+int get(cell dict, int key_len, int index) inline {
+    (slice step_slice, _) = dict.udict_get?(key_len, index);
+     return step_slice~load_uint(44) & 0xffffffff; 
+}
+
+
 tuple attach(tuple originMaze, cell come_from, int startxy, int endxy) inline {
     int pointer = endxy;
-    int n = 0;
     do {
-        (slice xy_slice, int success) = come_from.udict_get?(12, pointer);
+        (slice xy_slice, _) = come_from.udict_get?(12, pointer);
         int xy = xy_slice~load_uint(12);
         (int x, int y) = point(xy);
         if(xy != startxy) {
@@ -70,9 +73,22 @@ int chebyshev_distance(int x1, int x2, int y1, int y2) inline {
     return max(abs(y2 - y1), abs(x2 - x1));
 
 }
-int combine(int stone, int prob, int step) inline {
-    return  stone * 100000000 + prob * 1000000 + step * 1000;
+;; int combine(int stone, int prob, int step) inline {
+;;     return  (step << 8) + (prob << 20) + (stone << 28);
+;; }
+
+(int, int, int) split_step(cell dict, int key_len, int index) inline {
+    (slice step_slice, _) = dict.udict_get?(key_len, index);
+    return (step_slice~load_uint(6), step_slice~load_uint(8), step_slice~load_uint(12));
+
 }
+
+int combine(int stone, int prob) inline {
+    return  stone * 100000000 + prob * 1000000;
+}
+;; int combine(int stone, int prob, int step) inline {
+;;     return  stone * 100000000 + prob * 1000000 + step * 1000;
+;; }
 
 (int, int, int) split(int num) inline {
     return (num / 100000000, (num / 1000000) % 100, (num / 1000) % 100);
@@ -157,6 +173,7 @@ int combine(int stone, int prob, int step) inline {
         (int x, int y) = point(cur);
         int c = maze.g(x).g(y);
         if(c == 69) { ;; E
+            ;; (int stone, int prob, int step) = come_from.split_step(12, cur);
             (int stone, int prob, int step) = split(come_from.get?(12, cur));
             return (stone, prob, step, attach(maze, come_from, S, E));
         }
@@ -170,9 +187,9 @@ int combine(int stone, int prob, int step) inline {
                 int p = one(nx, ny);
                 int character = maze.g(nx).g(ny);
 
-                int thisCost = come_from.get?(12, cur); ;; g(x)
+                int thisCost = come_from.get(12, cur); ;; g(x)
                 ;; f(x) = g(x) + h(x)
-                int nextWillCost = thisCost + chebyshev_distance(nx, ex, ny, ey) + combine(- (character == 88), - (character == 63), 1);
+                int nextWillCost = thisCost + chebyshev_distance(nx, ex, ny, ey) + combine(- (character == 88), - (character == 63)) + 1000;
 
                 int nextCost = come_from.get?(12, p); 
                 
@@ -180,9 +197,9 @@ int combine(int stone, int prob, int step) inline {
                     ;; queue~tpush(p);
                     come_from~udict_set_builder(12, p, begin_cell().store_uint(cur, 12).store_uint(nextWillCost, 32));
 
-                    int nextWillCost_withIndex = nextWillCost;
-                    while(~ queue_dict~udict_add_builder?(32, nextWillCost_withIndex, begin_cell().store_uint(p, 12))) {
-                        nextWillCost_withIndex += 1;
+                    ;; int nextWillCost_withIndex = nextWillCost;
+                    while(~ queue_dict~udict_add_builder?(32, nextWillCost, begin_cell().store_uint(p, 12))) {
+                        nextWillCost += 1;
                     }
                 }
 
