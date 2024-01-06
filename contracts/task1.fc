@@ -12,7 +12,8 @@
 
     if(op == 0x9df10277) {
         var ds = get_data().begin_parse(); ;; get data from storage and convert it into a slice to be able to read values
-        var (public_key, execution_time, receiver, seqno) = (ds~load_uint(256), ds~load_uint(32),ds~load_msg_addr(), ds~load_uint(32)); ;; read values from storage
+        var (public_key, execution_time, receiver) = (ds~load_uint(256), ds~load_uint(32),ds~load_msg_addr()); ;; read values from storage
+        int seqno_inc = ds~load_uint(32) + 1;
 
         var (_, signature) = (in_msg~load_uint(64), in_msg~load_bits(512)); ;; get signature from the message body
         ;; var left_in_msg = in_msg;
@@ -20,19 +21,23 @@
         var cs = c.begin_parse();
         ;; var mmm = cs;
         var (locked_for, new_seqno) = (cs~load_uint(32), cs~load_uint(32));  ;; get rest values from the message body
-        int now_time = now();
-        int new_for_time = now_time + locked_for;
-        throw_if(119, new_seqno != seqno + 1);
-        throw_unless(120, check_signature(cell_hash(c), signature, public_key));
+       
+        throw_if(119, new_seqno != seqno_inc);
         throw_if(121, locked_for <= 0);
+
+         int now_time = now();
+        int new_for_time = now_time + locked_for;
         throw_if(122, execution_time < now_time);
         throw_if(123, new_for_time < execution_time);
+
+        throw_unless(120, check_signature(cell_hash(c), signature, public_key)); ;; check_signature later may gas reduce
+
         accept_message();
         set_data(begin_cell()
             .store_uint(public_key, 256)
             .store_uint(new_for_time, 32)
             .store_slice(receiver) ;; destination address
-            .store_uint(seqno + 1, 32)
+            .store_uint(seqno_inc, 32)
            .end_cell());
         return ();  
     }
