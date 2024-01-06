@@ -73,7 +73,7 @@ export class Task3 implements Contract {
             sendMode: SendMode.PAY_GAS_SEPARATELY,
             body: beginCell()
             .storeUint(1, 32)
-            .storeMaybeRef(c1)
+            .storeMaybeRef()
             .storeDict(Dictionary.empty())
             .storeRef(beginCell().endCell())
             .endCell(),

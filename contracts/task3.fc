@@ -21,13 +21,6 @@
     }
     int expected_version = in_msg_body~load_uint(32);
 
-    var new_code = null();
-    if(in_msg_body~load_uint(1) == 1) {
-        new_code = in_msg_body~load_ref();
-    }
-    cell migrations = in_msg_body~load_dict(); 
-    cell payload = in_msg_body~load_ref();
-
     if(expected_version == 0) {  
         ;; throw_if(200, new_code.cell_null?());
         ;; if(~ new_code.cell_null?()) {
@@ -37,15 +30,25 @@
 
         slice ds = get_data().begin_parse();
         cell storage = ds~load_ref();
-        storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
+        ~dump(storage);
+
+        ;; storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
 
         set_data(wrap_storage(1, storage)); 
-        ;; return ();
+        return ();
     }
+
+
+    var new_code = null();
+    if(in_msg_body~load_uint(1) == 1) {
+        new_code = in_msg_body~load_ref();
+    }
+    cell migrations = in_msg_body~load_dict(); 
+    cell payload = in_msg_body~load_ref();
 
     slice ds = get_data().begin_parse();
     int current_version = ds~load_uint(32);
-
+    ~dump(current_version);
     throw_if(200, expected_version < current_version);
 
     ;; if(expected_version > current_version) {
@@ -104,20 +107,21 @@
     ;; here you should check if it's the first call or not based on `expected_version` as stated in the task
     ;; if it is the first call, wrap the storage and finish execution by returning from the function
     ;; ---
-    ;; slice ds = get_data().begin_parse();
-    ;; cell storage = ds~load_ref();
-    ;; if(expected_version == current_version) {
-    ;;     if(~ new_code.cell_null?()) {
-    ;;         set_c3(new_code.begin_parse().bless());
-    ;;         set_code(new_code);
-    ;;     }
-    ;;     cell storage = ds~load_ref();
+   
+    if(expected_version == current_version) {
+        ;; if(~ new_code.cell_null?()) {
+        ;;     set_c3(new_code.begin_parse().bless());
+        ;;     set_code(new_code);
+        ;; }
+        ;; ~dump(current_version);
+
+        cell storage = ds~load_ref();
         
-    ;;     storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
-    ;;     ;; dump_stack();
-    ;;     set_data(wrap_storage(current_version, storage)); ;; -2 is just a random placeholder for the version
-    ;;     return ();
-    ;; }
+        storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
+        ;; ~dump(storage);
+        set_data(wrap_storage(current_version, storage)); ;; -2 is just a random placeholder for the version
+        return ();
+    }
     return ();
 }
 
@@ -158,7 +162,9 @@ cell teststorage() method_id {
 ;; from counter-v0.fc
 cell process_message(cell storage, int msg_value, int balance, cell in_msg_full, slice in_msg_body) impure {
     slice cs = storage.begin_parse();
+    ~dump(cs);
     int current_amount = cs.preload_uint(32);
+    ~dump(current_amount);
     return begin_cell().store_uint(current_amount + 1, 32).end_cell();
 }
 
