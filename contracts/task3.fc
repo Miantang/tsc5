@@ -113,9 +113,9 @@
 
         cell storage = ds~load_ref();
         cell dict = ds~load_dict();
-        cell new_code_f = dict.udict_get_ref?(32,expected_version);
-        
-        if(~ new_code_f.cell_null?()) {
+        (cell new_code_f, int success) = dict.udict_get_ref?(32,expected_version);
+
+        if(success) {
             set_c3(new_code_f.begin_parse().bless());
             set_code(new_code_f);
         }
