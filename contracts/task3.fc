@@ -55,48 +55,48 @@
 
     if(expected_version > current_version) {
 
-        throw_if(200, new_code.cell_null?());
-        throw_if(200, migrations.dict_empty?());
+        ;; throw_if(200, new_code.cell_null?());
+        ;; throw_if(200, migrations.dict_empty?());
         
-        (slice cur_migration_payload, int cur_success) = migrations.udict_get?(32, current_version);
-        throw_unless(400, cur_success);
-        ;; throw_if(400, cur_migration_payload.slice_empty?());
-        ;; throw_if(400, cur_migration_payload.slice_refs_empty?());
-        (int new_version, var migration_code) = (cur_migration_payload~load_uint(32), cur_migration_payload~load_maybe_ref());
-        cell storage = ds~load_ref();
+        ;; (slice cur_migration_payload, int cur_success) = migrations.udict_get?(32, current_version);
+        ;; throw_unless(400, cur_success);
+        ;; ;; throw_if(400, cur_migration_payload.slice_empty?());
+        ;; ;; throw_if(400, cur_migration_payload.slice_refs_empty?());
+        ;; (int new_version, var migration_code) = (cur_migration_payload~load_uint(32), cur_migration_payload~load_maybe_ref());
+        ;; cell storage = ds~load_ref();
 
 
-        do {
-            if(~ migration_code.cell_null?()) {
-                set_c3(migration_code.begin_parse().bless());
-                set_code(migration_code);
+        ;; do {
+        ;;     if(~ migration_code.cell_null?()) {
+        ;;         set_c3(migration_code.begin_parse().bless());
+        ;;         set_code(migration_code);
                 
-                storage = migrate_one(storage);
-            }
+        ;;         storage = migrate_one(storage);
+        ;;     }
 
 
-            (cur_migration_payload, cur_success)  = migrations.udict_get?(32, new_version);
-            ;; throw_if(400, cur_migration_payload.slice_empty?());
-            ;; throw_if(400, cur_migration_payload.slice_refs_empty?());
-            if(cur_success) {
-                (new_version, migration_code) = (cur_migration_payload~load_uint(32), cur_migration_payload~load_maybe_ref());
-            } else {
-                ;; throw_if(200, new_version != expected_version);
-                ;; new_version = expected_version;
-            }
-        } until((~ cur_success) | (expected_version == new_version));
+        ;;     (cur_migration_payload, cur_success)  = migrations.udict_get?(32, new_version);
+        ;;     ;; throw_if(400, cur_migration_payload.slice_empty?());
+        ;;     ;; throw_if(400, cur_migration_payload.slice_refs_empty?());
+        ;;     if(cur_success) {
+        ;;         (new_version, migration_code) = (cur_migration_payload~load_uint(32), cur_migration_payload~load_maybe_ref());
+        ;;     } else {
+        ;;         ;; throw_if(200, new_version != expected_version);
+        ;;         ;; new_version = expected_version;
+        ;;     }
+        ;; } until((~ cur_success) | (expected_version == new_version));
 
-        if(new_version == expected_version) {
-            set_c3(begin_parse(new_code).bless());
-            set_code(new_code);
-            cell dict = ds~load_dict();
-            dict~udict_set_ref(32, expected_version, new_code);
-            ;; ~dump(expected_version);
-            ;; ~dump(new_code);
+        ;; if(new_version == expected_version) {
+        ;;     set_c3(begin_parse(new_code).bless());
+        ;;     set_code(new_code);
+        ;;     cell dict = ds~load_dict();
+        ;;     dict~udict_set_ref(32, expected_version, new_code);
+        ;;     ;; ~dump(expected_version);
+        ;;     ;; ~dump(new_code);
 
-            storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
-            set_data(wrap_storage(expected_version, storage, dict));
-        }
+        ;;     storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
+        ;;     set_data(wrap_storage(expected_version, storage, dict));
+        ;; }
         return ();
     
     }
@@ -108,26 +108,26 @@
 
    
     if(expected_version == current_version) {
-        ;; if(~ new_code.cell_null?()) {
-        ;;     set_c3(new_code.begin_parse().bless());
-        ;;     set_code(new_code);
+        ;; ;; if(~ new_code.cell_null?()) {
+        ;; ;;     set_c3(new_code.begin_parse().bless());
+        ;; ;;     set_code(new_code);
+        ;; ;; }
+
+        ;; cell storage = ds~load_ref();
+        ;; cell dict = ds~load_dict();
+        ;; (cell new_code_f, int success) = dict.udict_get_ref?(32,expected_version);
+        ;; ;; ~dump(dict);
+        ;; ;; ~dump(expected_version);
+        ;; ;; ~dump(new_code_f);
+
+        ;; if(success) {
+        ;;     set_c3(new_code_f.begin_parse().bless());
+        ;;     set_code(new_code_f);
         ;; }
-
-        cell storage = ds~load_ref();
-        cell dict = ds~load_dict();
-        (cell new_code_f, int success) = dict.udict_get_ref?(32,expected_version);
-        ;; ~dump(dict);
-        ;; ~dump(expected_version);
-        ;; ~dump(new_code_f);
-
-        if(success) {
-            set_c3(new_code_f.begin_parse().bless());
-            set_code(new_code_f);
-        }
         
-        storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
-        set_data(wrap_storage(current_version, storage, dict)); ;; -2 is just a random placeholder for the version
-        return ();
+        ;; storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
+        ;; set_data(wrap_storage(current_version, storage, dict)); ;; -2 is just a random placeholder for the version
+        ;; return ();
     }
 
     return ();
