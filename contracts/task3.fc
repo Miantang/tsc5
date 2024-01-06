@@ -34,11 +34,11 @@
         ;;     set_code(new_code);
         ;; }
 
-        slice ds = get_data().begin_parse();
-        cell storage = ds~load_ref();
-        ;; ~dump(storage);
-        storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
-        set_data(wrap_storage(1, storage, new_dict())); 
+        ;; slice ds = get_data().begin_parse();
+        ;; cell storage = ds~load_ref();
+        ;; ;; ~dump(storage);
+        ;; storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
+        ;; set_data(wrap_storage(1, storage, new_dict())); 
         return ();
     }
 
