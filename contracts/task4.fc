@@ -47,6 +47,7 @@ int get?(cell dict, int key_len, int index) inline {
     
 }
 
+;; 不需要检查， gas reduce
 int get(cell dict, int key_len, int index) inline {
     (slice step_slice, _) = dict.udict_get?(key_len, index);
      return step_slice~load_uint(44) & 0xffffffff; 
@@ -58,8 +59,8 @@ tuple attach(tuple originMaze, cell come_from, int startxy, int endxy) inline {
     do {
         (slice xy_slice, _) = come_from.udict_get?(12, pointer);
         int xy = xy_slice~load_uint(12);
-        (int x, int y) = point(xy);
         if(xy != startxy) {
+            (int x, int y) = point(xy);
             originMaze~tset(x, originMaze.g(x).tset(y, 33));
         }
         pointer = xy;
