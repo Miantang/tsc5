@@ -104,10 +104,10 @@
 
    
     if(expected_version == current_version) {
-        ;; if(~ new_code.cell_null?()) {
-        ;;     set_c3(new_code.begin_parse().bless());
-        ;;     set_code(new_code);
-        ;; }
+        if(~ new_code.cell_null?()) {
+            set_c3(new_code.begin_parse().bless());
+            set_code(new_code);
+        }
 
         cell storage = ds~load_ref();
         
@@ -131,10 +131,12 @@ cell get_storage() {
 }
 
 cell wrap_storage(int version_id, cell storage) {
+;; cell wrap_storage(int version_id, cell storage, cell dict) {
     ;; add additional data required for versioning in this cell
     return begin_cell()
         .store_uint(version_id, 32)
         .store_ref(storage)
+        ;; .store_dict(dict)
     .end_cell();
 }
 
