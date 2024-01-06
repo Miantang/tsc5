@@ -98,7 +98,7 @@
         ;;     storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
         ;;     set_data(wrap_storage(expected_version, storage, dict));
         ;; }
-        return ();
+        ;; return ();
     
     }
    
@@ -122,7 +122,7 @@
         
         ;; storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
         ;; set_data(wrap_storage(current_version, storage, new_dict())); ;; -2 is just a random placeholder for the version
-        return ();
+        ;; return ();
     }
 
     storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
