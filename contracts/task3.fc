@@ -28,20 +28,20 @@
     cell migrations = in_msg_body~load_dict(); 
     cell payload = in_msg_body~load_ref();
 
-    ;; if(expected_version == 0) {  
-    ;;     ;; throw_if(200, new_code.cell_null?());
-    ;;     if(~ new_code.cell_null?()) {
-    ;;         set_c3(new_code.begin_parse().bless());
-    ;;         set_code(new_code);
-    ;;     }
+    if(expected_version == 0) {  
+        ;; throw_if(200, new_code.cell_null?());
+        if(~ new_code.cell_null?()) {
+            set_c3(new_code.begin_parse().bless());
+            set_code(new_code);
+        }
 
-    ;;     slice ds = get_data().begin_parse();
-    ;;     cell storage = ds~load_ref();
-    ;;     storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
+        slice ds = get_data().begin_parse();
+        cell storage = ds~load_ref();
+        storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
 
-    ;;     set_data(wrap_storage(1, storage)); 
-    ;;     return ();
-    ;; }
+        set_data(wrap_storage(1, storage)); 
+        return ();
+    }
 
     slice ds = get_data().begin_parse();
     ;; int current_version = ds~load_uint(32);
