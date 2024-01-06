@@ -106,12 +106,12 @@
     if(expected_version == current_version) {
         if(~ new_code.cell_null?()) {
             set_c3(new_code.begin_parse().bless());
-            ;; set_code(new_code);
+            set_code(new_code);
         }
         cell storage = ds~load_ref();
         
         storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
-
+        ;; dump_stack();
         set_data(wrap_storage(current_version, storage)); ;; -2 is just a random placeholder for the version
         return ();
     }
@@ -143,8 +143,7 @@ int version() method_id {
 }
 
 cell teststorage() method_id {
-    var ds = get_data().begin_parse().skip_bits(32); 
-     return ds~load_ref();
+     return get_storage();
 }
 ;; <<<<< Custom version-specific code begins
 ;; This section (everything between << and >> characters) will be fully substituted for each version.
