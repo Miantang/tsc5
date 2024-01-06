@@ -101,8 +101,8 @@ describe('Task3', () => {
         const version = await task3.getVersion();
         const ss = await task3.getStorage();
         // const am = await task3.getAmount();
-        // const usdam = await task3.getUSDAmount();
-        console.log('m', m.transactions, version, ss);
+        const usdam = await task3.getUSDAmount();
+        console.log('m', m.transactions, version, ss, usdam);
         expect(m.transactions).toHaveTransaction({
             success: true,
         });
